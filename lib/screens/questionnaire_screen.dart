@@ -5,7 +5,8 @@ import '../core/theme.dart';
 import '../models/question_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/question_provider.dart';
-import 'result_screen.dart';
+import 'dashboard_screen.dart';
+import 'processing_screen.dart';
 
 class QuestionnaireScreen extends ConsumerStatefulWidget {
   const QuestionnaireScreen({super.key});
@@ -43,6 +44,7 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
               userId: userId,
               result: result,
             );
+        ref.invalidate(dashboardResultsProvider);
       }
 
       if (!mounted) {
@@ -52,7 +54,7 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
       controller.reset();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
-          builder: (_) => ResultScreen(result: result),
+          builder: (_) => ProcessingScreen(result: result),
         ),
       );
     } catch (error) {
@@ -70,7 +72,7 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(questionnaireProvider);
     final question = state.currentQuestion;
-
+    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lifestyle Questions'),
@@ -131,26 +133,39 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              ElevatedButton(
-                onPressed: _isSaving ? null : () => _handleNext(state),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: state.selectedOptionIndex == null
-                      ? AppColors.surfaceMuted
-                      : AppColors.primary,
-                  foregroundColor: state.selectedOptionIndex == null
-                      ? AppColors.textSecondary
-                      : Colors.white,
+              Center(
+                child: SizedBox(
+                  width: screenWidth * 0.88,
+                  child: ElevatedButton(
+                    onPressed: _isSaving ? null : () => _handleNext(state),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(300, 56),
+                      backgroundColor: state.selectedOptionIndex == null
+                          ? AppColors.surfaceMuted
+                          : AppColors.primary,
+                      foregroundColor: state.selectedOptionIndex == null
+                          ? AppColors.textSecondary
+                          : Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(state.isLastQuestion ? 'See Result' : 'Next'),
+                  ),
                 ),
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(state.isLastQuestion ? 'See Result' : 'Next'),
               ),
             ],
           ),

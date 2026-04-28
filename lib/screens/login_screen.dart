@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/auth_provider.dart';
+import 'dashboard_screen.dart';
+import 'informative_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -34,6 +36,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     ref.listen<AuthViewState>(authControllerProvider, (previous, next) {
+      final hadSession = previous?.session != null;
+      final hasSession = next.session != null;
+
+      if (!hadSession && hasSession) {
+        Future<void>(() async {
+          final userId = next.session?.user.id;
+          if (userId == null || !mounted) {
+            return;
+          }
+
+          Widget destination = const InformativeScreen();
+          try {
+            final profile =
+                await ref.read(userServiceProvider).fetchUserProfile(userId);
+            if (profile.isComplete) {
+              destination = const DashboardScreen(initialIndex: 0);
+            }
+          } catch (_) {}
+
+          if (!mounted) {
+            return;
+          }
+
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute<void>(builder: (_) => destination),
+            (route) => false,
+          );
+        });
+        return;
+      }
+
       final errorMessage = next.errorMessage;
       if (errorMessage != null) {
         ScaffoldMessenger.of(context)

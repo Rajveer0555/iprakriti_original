@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 import '../models/question_model.dart';
-import 'history_screen.dart';
-import 'home_screen.dart';
+import 'detailed_report_screen.dart';
+import 'dashboard_screen.dart';
 
 class ResultScreen extends StatelessWidget {
   const ResultScreen({
@@ -17,11 +17,29 @@ class ResultScreen extends StatelessWidget {
 
   static const Map<String, String> _suggestions = {
     'Vata':
-        'Favor warmth, regular meals, grounding routines, and calming rest to balance light and mobile Vata energy.',
+        'As a Vata-dominant individual, you possess creative energy, quick thinking, and adaptability. Your secondary influences help bring steadiness and perspective when you follow nourishing routines.',
     'Pitta':
-        'Support your fire with cooling foods, mindful pauses, hydration, and non-competitive movement.',
+        'As a Pitta-dominant individual, you possess strong digestive fire, sharp intellect, and natural leadership qualities. You thrive on challenges and have excellent focus.\n\nYour secondary Vata influence brings creativity and enthusiasm to your personality, while a balanced Kapha provides stability.',
     'Kapha':
-        'Keep energy moving with light meals, stimulating exercise, early rising, and variety in your routine.',
+        'As a Kapha-dominant individual, you carry grounded strength, patience, and emotional steadiness. Your constitution benefits from movement, lightness, and inspiring daily structure.',
+  };
+
+  static const Map<String, List<String>> _characteristics = {
+    'Pitta': [
+      'Strong metabolism and digestion',
+      'Goal-oriented and ambitious',
+      'Warm body temperature',
+    ],
+    'Vata': [
+      'Creative and fast-moving mind',
+      'Energetic and expressive nature',
+      'Benefits from grounding routines',
+    ],
+    'Kapha': [
+      'Steady energy and endurance',
+      'Calm, loyal, and compassionate',
+      'Naturally stable body frame',
+    ],
   };
 
   @override
@@ -29,44 +47,55 @@ class ResultScreen extends StatelessWidget {
     final dominant = result.finalPrakriti;
     final insight = _suggestions[dominant] ??
         'Maintain a balanced daily routine and choose foods and activities that keep your energy steady.';
+    final characteristics = _characteristics[dominant] ??
+        const [
+          'Balanced wellness foundation',
+          'Responsive to routine and nourishment',
+          'Benefits from mindful daily habits',
+        ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Assessment Result'),
-      ),
+      backgroundColor: const Color(0xFFFCFCFA),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.fromLTRB(30, 26, 30, 28),
           child: Column(
             children: [
               Container(
-                width: 76,
-                height: 76,
+                width: 82,
+                height: 82,
                 decoration: const BoxDecoration(
-                  color: AppColors.success,
+                  color: Color(0xFF82E869),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.check_rounded,
-                  size: 44,
+                  size: 48,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: 28),
               Text(
                 '$dominant Dominant',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Your constitution is primarily influenced by the $dominant dosha.',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: 10),
+              Text(
+                _headlineDescription(dominant),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: const Color(0xFF4A4A4A),
+                      height: 1.45,
+                    ),
+              ),
+              const SizedBox(height: 24),
               SizedBox(
-                width: 240,
-                height: 240,
+                width: 250,
+                height: 250,
                 child: CustomPaint(
                   painter: _PrakritiChartPainter(result),
                   child: Center(
@@ -75,18 +104,24 @@ class ResultScreen extends StatelessWidget {
                       children: [
                         Text(
                           '${_dominantPercent(result).round()}%',
-                          style: Theme.of(context).textTheme.headlineMedium,
+                          style:
+                              Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                         ),
                         Text(
                           dominant,
-                          style: Theme.of(context).textTheme.bodyLarge,
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                color: const Color(0xFF676767),
+                              ),
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -107,54 +142,93 @@ class ResultScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.xl),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xl),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Your Prakriti Insight',
-                        style: Theme.of(context).textTheme.titleLarge,
+              const SizedBox(height: 28),
+              _ResultSectionCard(
+                title: 'Your Prakruti Insight',
+                child: Text(
+                  insight,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: const Color(0xFF2E2E2E),
+                        height: 1.58,
                       ),
-                      const SizedBox(height: AppSpacing.md),
-                      Text(
-                        insight,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
+                ),
+              ),
+              const SizedBox(height: 22),
+              _ResultSectionCard(
+                title: 'Key Characteristics',
+                tinted: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (int i = 0; i < characteristics.length; i++) ...[
+                      _CharacteristicRow(text: characteristics[i]),
+                      if (i != characteristics.length - 1)
+                        const SizedBox(height: 10),
                     ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => DetailedReportScreen(result: result),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(0, 56),
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                  ),
+                  child: const Text(
+                    'View Detailed Report',
+                    style: TextStyle(fontSize: 16),
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.xl),
-              ElevatedButton(
+              const SizedBox(height: 10),
+              TextButton(
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute<void>(
-                      builder: (_) => const HomeScreen(),
+                      builder: (_) => const DashboardScreen(initialIndex: 0),
                     ),
                     (route) => false,
                   );
                 },
-                child: const Text('Back to Home'),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const HistoryScreen(),
-                    ),
-                  );
-                },
-                child: const Text('View History'),
+                child: const Text(
+                  'Back to Home',
+                  style: TextStyle(
+                    color: Color(0xFF9DA787),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  String _headlineDescription(String dominant) {
+    switch (dominant) {
+      case 'Pitta':
+        return 'Your constitution is primarily influenced by the Pitta dosha, representing fire & water';
+      case 'Vata':
+        return 'Your constitution is primarily influenced by the Vata dosha, representing air & space';
+      case 'Kapha':
+        return 'Your constitution is primarily influenced by the Kapha dosha, representing earth & water';
+      default:
+        return 'Your constitution is primarily influenced by the $dominant dosha.';
+    }
   }
 
   double _dominantPercent(PrakritiAssessmentResult result) {
@@ -165,6 +239,87 @@ class ResultScreen extends StatelessWidget {
     ];
     values.sort();
     return values.last;
+  }
+}
+
+class _ResultSectionCard extends StatelessWidget {
+  const _ResultSectionCard({
+    required this.title,
+    required this.child,
+    this.tinted = false,
+  });
+
+  final String title;
+  final Widget child;
+  final bool tinted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      decoration: BoxDecoration(
+        color: tinted ? const Color(0xFFF3F8EC) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: tinted ? const Color(0xFFD6E3C9) : const Color(0xFFECEEE7),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0F000000),
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
+          const SizedBox(height: 14),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _CharacteristicRow extends StatelessWidget {
+  const _CharacteristicRow({
+    required this.text,
+  });
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 4),
+          child: Text(
+            '•',
+            style: TextStyle(fontSize: 18, color: Colors.black87),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: const Color(0xFF2F2F2F),
+                ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -188,7 +343,7 @@ class _LegendItem extends StatelessWidget {
           height: 10,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(width: AppSpacing.xs),
+        const SizedBox(width: 6),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -208,7 +363,7 @@ class _PrakritiChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const strokeWidth = 18.0;
+    const strokeWidth = 16.0;
     final rect = Offset.zero & size;
     final center = rect.center;
     final radius = (math.min(size.width, size.height) / 2) - strokeWidth;
@@ -216,7 +371,7 @@ class _PrakritiChartPainter extends CustomPainter {
     final backgroundPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
-      ..color = AppColors.border;
+      ..color = const Color(0xFFF0F0EA);
 
     canvas.drawCircle(center, radius, backgroundPaint);
 
@@ -232,7 +387,7 @@ class _PrakritiChartPainter extends CustomPainter {
       final paint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round
+        ..strokeCap = StrokeCap.butt
         ..color = segment.$2;
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),

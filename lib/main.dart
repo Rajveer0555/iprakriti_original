@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/theme.dart';
+import 'models/user_profile_model.dart';
 import 'providers/auth_provider.dart';
-import 'screens/home_screen.dart';
+import 'screens/dashboard_screen.dart';
+import 'screens/informative_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/splash_screen.dart';
@@ -21,19 +23,33 @@ const _supabaseAnonKey = String.fromEnvironment(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  String? initializationError;
 
   if (_supabaseUrl.isNotEmpty && _supabaseAnonKey.isNotEmpty) {
-    await Supabase.initialize(
-      url: _supabaseUrl,
-      anonKey: _supabaseAnonKey,
-    );
+    try {
+      await Supabase.initialize(
+        url: _supabaseUrl,
+        anonKey: _supabaseAnonKey,
+      );
+    } catch (error) {
+      initializationError = error.toString();
+    }
   }
 
-  runApp(const ProviderScope(child: IPrakritiApp()));
+  runApp(
+    ProviderScope(
+      child: IPrakritiApp(initializationError: initializationError),
+    ),
+  );
 }
 
 class IPrakritiApp extends StatelessWidget {
-  const IPrakritiApp({super.key});
+  const IPrakritiApp({
+    super.key,
+    this.initializationError,
+  });
+
+  final String? initializationError;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +59,8 @@ class IPrakritiApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       home: _supabaseUrl.isEmpty || _supabaseAnonKey.isEmpty
           ? const _ConfigurationMissingScreen()
+          : initializationError != null
+              ? _SupabaseStartupErrorScreen(message: initializationError!)
           : const SplashScreenWrapper(),
       routes: {
         '/login': (context) => const LoginScreen(),
@@ -90,11 +108,43 @@ class AuthStateHandler extends ConsumerWidget {
     }
 
     if (authState.session != null) {
-      return const HomeScreen();
+      return const _PostAuthDestination();
     }
 
     // Show onboarding screen for new users
     return const OnboardingScreen();
+  }
+}
+
+class _PostAuthDestination extends ConsumerWidget {
+  const _PostAuthDestination();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = ref.watch(authControllerProvider).session?.user.id;
+    if (userId == null) {
+      return const OnboardingScreen();
+    }
+
+    return FutureBuilder<UserProfileData>(
+      future: ref.read(userServiceProvider).fetchUserProfile(userId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _SplashScreen();
+        }
+
+        if (snapshot.hasError) {
+          return _PostAuthErrorScreen(message: snapshot.error.toString());
+        }
+
+        final profile = snapshot.data;
+        if (profile == null || !profile.isComplete) {
+          return const InformativeScreen();
+        }
+
+        return const DashboardScreen(initialIndex: 0);
+      },
+    );
   }
 }
 
@@ -179,6 +229,99 @@ class _ConfigurationMissingScreen extends StatelessWidget {
                   'Run with --dart-define=SUPABASE_URL=... and '
                   '--dart-define=SUPABASE_ANON_KEY=... to enable auth, '
                   'history, and result syncing.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SupabaseStartupErrorScreen extends StatelessWidget {
+  const _SupabaseStartupErrorScreen({
+    required this.message,
+  });
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.wifi_off_rounded,
+                  size: 56,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  'Unable to connect to Supabase',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Check your internet connection, verify the Supabase URL, '
+                  'and try launching the app again.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  message,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PostAuthErrorScreen extends StatelessWidget {
+  const _PostAuthErrorScreen({
+    required this.message,
+  });
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline_rounded,
+                  size: 52,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  'We could not load your profile',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  message,
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),

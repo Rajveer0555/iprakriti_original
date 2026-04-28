@@ -144,15 +144,23 @@ class AuthController extends StateNotifier<AuthViewState> {
 
   Future<void> _bootstrap() async {
     final session = _repository.currentSession;
-    if (session != null) {
-      await _repository.syncUserProfile(session);
-    }
+    try {
+      if (session != null) {
+        await _repository.syncUserProfile(session);
+      }
 
-    state = state.copyWith(
-      isInitialized: true,
-      session: session,
-      clearError: true,
-    );
+      state = state.copyWith(
+        isInitialized: true,
+        session: session,
+        clearError: true,
+      );
+    } catch (error) {
+      state = state.copyWith(
+        isInitialized: true,
+        session: session,
+        errorMessage: error.toString(),
+      );
+    }
 
     _subscription = _repository.authStateChanges.listen((event) async {
       try {

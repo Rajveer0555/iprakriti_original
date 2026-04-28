@@ -64,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
                           letterSpacing: 1.0,
                         ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   Text(
                     'AI-Based Ayurvedic Analysis',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
