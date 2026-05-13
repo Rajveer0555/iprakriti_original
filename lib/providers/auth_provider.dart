@@ -78,6 +78,8 @@ class AuthRepository {
 
   Future<void> signOut() => _authService.signOut();
 
+  Future<void> clearLocalSession() => _authService.clearLocalSession();
+
   Future<void> syncUserProfile(supabase.Session? session) async {
     final user = session?.user;
     if (user == null) {
@@ -117,11 +119,12 @@ class AuthViewState {
     supabase.Session? session,
     String? errorMessage,
     bool clearError = false,
+    bool clearSession = false,
   }) {
     return AuthViewState(
       isInitialized: isInitialized ?? this.isInitialized,
       isLoading: isLoading ?? this.isLoading,
-      session: session ?? this.session,
+      session: clearSession ? null : session ?? this.session,
       errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
     );
   }
@@ -162,27 +165,35 @@ class AuthController extends StateNotifier<AuthViewState> {
       );
     }
 
-    _subscription = _repository.authStateChanges.listen((event) async {
-      try {
-        if (event.session != null) {
-          await _repository.syncUserProfile(event.session);
+    _subscription = _repository.authStateChanges.listen(
+      (event) {
+        final session = event.session;
+
+        state = state.copyWith(
+          isInitialized: true,
+          isLoading: false,
+          session: session,
+          clearSession: session == null,
+          clearError: true,
+        );
+
+        if (session != null) {
+          unawaited(_repository.syncUserProfile(session).catchError((_) {}));
+        }
+      },
+      onError: (Object error) {
+        if (_isInvalidRefreshTokenError(error)) {
+          unawaited(_clearInvalidSession());
+          return;
         }
 
         state = state.copyWith(
           isInitialized: true,
           isLoading: false,
-          session: event.session,
-          clearError: true,
-        );
-      } catch (error) {
-        state = state.copyWith(
-          isInitialized: true,
-          isLoading: false,
-          session: event.session,
           errorMessage: error.toString(),
         );
-      }
-    });
+      },
+    );
   }
 
   Future<void> signInWithGoogle() async {
@@ -242,8 +253,13 @@ class AuthController extends StateNotifier<AuthViewState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       await _repository.signOut();
-      state = state.copyWith(isLoading: false, session: null);
+      state = state.copyWith(isLoading: false, clearSession: true);
     } catch (error) {
+      if (_isInvalidRefreshTokenError(error)) {
+        await _clearInvalidSession();
+        return;
+      }
+
       state = state.copyWith(
         isLoading: false,
         errorMessage: error.toString(),
@@ -253,6 +269,27 @@ class AuthController extends StateNotifier<AuthViewState> {
 
   void clearError() {
     state = state.copyWith(clearError: true);
+  }
+
+  Future<void> _clearInvalidSession() async {
+    await _repository.clearLocalSession();
+    state = state.copyWith(
+      isInitialized: true,
+      isLoading: false,
+      clearSession: true,
+      clearError: true,
+    );
+  }
+
+  bool _isInvalidRefreshTokenError(Object error) {
+    if (error is supabase.AuthApiException) {
+      return error.code == 'refresh_token_not_found' ||
+          error.message.toLowerCase().contains('invalid refresh token');
+    }
+
+    final message = error.toString().toLowerCase();
+    return message.contains('refresh_token_not_found') ||
+        message.contains('invalid refresh token');
   }
 
   @override

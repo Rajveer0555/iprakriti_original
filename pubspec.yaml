@@ -44,8 +44,16 @@ dependencies:
 
 dev_dependencies:
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.12.0
   flutter_test:
     sdk: flutter
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/app_logo.png"
+  remove_alpha_ios: true
+  android_disable_round: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -64,6 +72,7 @@ flutter:
     - assets/Logo1.png
     - assets/Logo2.png
     - assets/Logo3.png
+    - assets/app_logo.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
   # For details regarding adding assets from package dependencies, see

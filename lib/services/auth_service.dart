@@ -45,4 +45,8 @@ class AuthService {
   Future<void> signOut() {
     return _client.auth.signOut();
   }
+
+  Future<void> clearLocalSession() {
+    return _client.auth.signOut(scope: supabase.SignOutScope.local);
+  }
 }

@@ -7,7 +7,7 @@ import '../models/user_profile_model.dart';
 
 class UserService {
   UserService(this._client, [ImagePicker? picker])
-      : _picker = picker ?? ImagePicker();
+    : _picker = picker ?? ImagePicker();
 
   static const _missingUsersTableMessage =
       'Supabase table "public.users" is missing. Create the users table '
@@ -25,15 +25,19 @@ class UserService {
     required String name,
   }) async {
     try {
-      await _client.from('users').upsert(
-        {
-          'id': id,
-          'email': email,
-          'name': name,
-          'updated_at': DateTime.now().toIso8601String(),
-        },
-        onConflict: 'id',
-      );
+      final existing =
+          await _client.from('users').select('name').eq('id', id).maybeSingle();
+      final existingName = existing?['name'] as String?;
+
+      await _client.from('users').upsert({
+        'id': id,
+        'email': email,
+        'name':
+            existingName == null || existingName.trim().isEmpty
+                ? name
+                : existingName,
+        'updated_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'id');
     } on PostgrestException catch (error) {
       if (_isUsersTableRlsDenied(error)) {
         throw Exception(_usersRlsMessage);
@@ -68,6 +72,10 @@ class UserService {
     return url;
   }
 
+  Future<XFile?> pickProfileImage() {
+    return _picker.pickImage(source: ImageSource.gallery, imageQuality: 95);
+  }
+
   Future<String> uploadProfileImage({
     required String userId,
     required Uint8List bytes,
@@ -76,7 +84,9 @@ class UserService {
     final path =
         '$userId/profile_${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
 
-    await _client.storage.from('profile-images').uploadBinary(
+    await _client.storage
+        .from('profile-images')
+        .uploadBinary(
           path,
           bytes,
           fileOptions: const FileOptions(upsert: true),
@@ -90,14 +100,11 @@ class UserService {
     required String imageUrl,
   }) async {
     try {
-      await _client.from('users').upsert(
-        {
-          'id': userId,
-          'avatar_url': imageUrl,
-          'updated_at': DateTime.now().toIso8601String(),
-        },
-        onConflict: 'id',
-      );
+      await _client.from('users').upsert({
+        'id': userId,
+        'avatar_url': imageUrl,
+        'updated_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'id');
     } on PostgrestException catch (error) {
       if (_isUsersTableRlsDenied(error)) {
         throw Exception(_usersRlsMessage);
@@ -110,11 +117,8 @@ class UserService {
 
   Future<UserProfileData> fetchUserProfile(String userId) async {
     try {
-      final response = await _client
-          .from('users')
-          .select()
-          .eq('id', userId)
-          .maybeSingle();
+      final response =
+          await _client.from('users').select().eq('id', userId).maybeSingle();
       return UserProfileData.fromMap(response);
     } on PostgrestException catch (error) {
       if (_isMissingUsersTable(error)) {
@@ -135,17 +139,47 @@ class UserService {
     required double weightKg,
   }) async {
     try {
-      await _client.from('users').upsert(
-        {
-          'id': userId,
-          'age': age,
-          'gender': gender,
-          'height_cm': heightCm,
-          'weight_kg': weightKg,
-          'updated_at': DateTime.now().toIso8601String(),
-        },
-        onConflict: 'id',
-      );
+      await _client.from('users').upsert({
+        'id': userId,
+        'age': age,
+        'gender': gender,
+        'height_cm': heightCm,
+        'weight_kg': weightKg,
+        'updated_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'id');
+    } on PostgrestException catch (error) {
+      if (_isMissingUsersTable(error)) {
+        throw Exception(_missingUsersTableMessage);
+      }
+      if (_isUsersTableRlsDenied(error)) {
+        throw Exception(_usersRlsMessage);
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> saveProfile({
+    required String userId,
+    required String name,
+    required String email,
+    required int age,
+    required String gender,
+    required double heightCm,
+    required double weightKg,
+    String? avatarUrl,
+  }) async {
+    try {
+      await _client.from('users').upsert({
+        'id': userId,
+        'name': name,
+        'email': email,
+        'age': age,
+        'gender': gender,
+        'height_cm': heightCm,
+        'weight_kg': weightKg,
+        if (avatarUrl != null) 'avatar_url': avatarUrl,
+        'updated_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'id');
     } on PostgrestException catch (error) {
       if (_isMissingUsersTable(error)) {
         throw Exception(_missingUsersTableMessage);

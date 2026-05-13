@@ -15,9 +15,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _emailController =
-      TextEditingController(text: 'rajveerchauhan936@gmail.com');
-  final _passwordController = TextEditingController(text: 'password');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true;
@@ -47,13 +46,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           }
 
           Widget destination = const InformativeScreen();
-          try {
-            final profile =
-                await ref.read(userServiceProvider).fetchUserProfile(userId);
-            if (profile.isComplete) {
-              destination = const DashboardScreen(initialIndex: 0);
-            }
-          } catch (_) {}
+          if (!_isSignUp) {
+            try {
+              final profile =
+                  await ref.read(userServiceProvider).fetchUserProfile(userId);
+              if (profile.isComplete) {
+                destination = const DashboardScreen(initialIndex: 0);
+              }
+            } catch (_) {}
+          }
 
           if (!mounted) {
             return;
@@ -140,7 +141,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ],
                       _AuthField(
                         controller: _emailController,
-                        hintText: _isSignUp ? 'Email-id' : null,
+                        hintText: _isSignUp ? 'Email-id' : 'Enter your email',
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
                           final email = (value ?? '').trim();
@@ -157,7 +158,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 24),
                       _AuthField(
                         controller: _passwordController,
-                        hintText: _isSignUp ? 'Password' : null,
+                        hintText:
+                            _isSignUp ? 'Password' : 'Enter your password',
                         obscureText: _obscurePassword,
                         validator: (value) {
                           if ((value ?? '').isEmpty) {
@@ -395,7 +397,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ..showSnackBar(
           const SnackBar(
             content: Text(
-              'Account created. If email confirmation is enabled, check your inbox.',
+              'Account created successfully.',
             ),
           ),
         );
@@ -418,8 +420,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _passwordController.clear();
         _confirmPasswordController.clear();
       } else {
-        _emailController.text = 'rajveerchauhan936@gmail.com';
-        _passwordController.text = 'password';
+        _emailController.clear();
+        _passwordController.clear();
         _confirmPasswordController.clear();
       }
     });
