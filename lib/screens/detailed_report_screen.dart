@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 import '../models/question_model.dart';
+import 'dashboard_screen.dart';
 import 'personalized_recommendations_screen.dart';
 import 'share_report_screen.dart';
 
@@ -218,7 +219,17 @@ class DetailedReportScreen extends StatelessWidget {
                                 ),
                               ),
                               InkWell(
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute<void>(
+                                      builder:
+                                          (_) => const DashboardScreen(
+                                            initialIndex: 2,
+                                          ),
+                                    ),
+                                    (route) => false,
+                                  );
+                                },
                                 child: Row(
                                   children: [
                                     Text(
@@ -439,16 +450,18 @@ class _ReportCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
       decoration: BoxDecoration(
-        color: warning
-            ? const Color(0xFFFFF9CF)
-            : tinted
+        color:
+            warning
+                ? const Color(0xFFFFF9CF)
+                : tinted
                 ? const Color(0xFFF0F8EB)
                 : Colors.white,
         borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: warning
-              ? const Color(0xFFFFB7A8)
-              : tinted
+          color:
+              warning
+                  ? const Color(0xFFFFB7A8)
+                  : tinted
                   ? const Color(0xFFC8DEBC)
                   : const Color(0xFFECEEE7),
         ),
@@ -485,9 +498,9 @@ class _BulletSection extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
           )
         else
           Row(
@@ -497,9 +510,9 @@ class _BulletSection extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -544,9 +557,9 @@ class _RecommendationGroup extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -581,10 +594,11 @@ class _BulletRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.only(top: 4),
-          child: Text(
-            '•',
-            style: TextStyle(fontSize: 18, color: Colors.black87),
+          padding: EdgeInsets.only(top: 7),
+          child: Icon(
+            Icons.circle,
+            size: 7,
+            color: Colors.black87,
           ),
         ),
         const SizedBox(width: 10),
@@ -592,9 +606,9 @@ class _BulletRow extends StatelessWidget {
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: const Color(0xFF262626),
-                  height: 1.45,
-                ),
+              color: const Color(0xFF262626),
+              height: 1.45,
+            ),
           ),
         ),
       ],
@@ -627,17 +641,17 @@ class _DoshaLegendRow extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: const Color(0xFF454545),
-                  fontSize: 15,
-                ),
+              color: const Color(0xFF454545),
+              fontSize: 15,
+            ),
           ),
         ),
         Text(
           value,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: const Color(0xFF454545),
-                fontSize: 15,
-              ),
+            color: const Color(0xFF454545),
+            fontSize: 15,
+          ),
         ),
       ],
     );
@@ -655,10 +669,11 @@ class _DetailedReportChartPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (math.min(size.width, size.height) / 2) - strokeWidth;
 
-    final backgroundPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..color = const Color(0xFFF0F0EA);
+    final backgroundPaint =
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..color = const Color(0xFFF0F0EA);
 
     canvas.drawCircle(center, radius, backgroundPaint);
 
@@ -671,11 +686,12 @@ class _DetailedReportChartPainter extends CustomPainter {
     var startAngle = -math.pi / 2;
     for (final segment in segments) {
       final sweepAngle = 2 * math.pi * segment.$1;
-      final paint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.butt
-        ..color = segment.$2;
+      final paint =
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = strokeWidth
+            ..strokeCap = StrokeCap.butt
+            ..color = segment.$2;
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
         startAngle,

@@ -35,8 +35,12 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: ^2.6.1
+  google_sign_in: ^6.3.0
   http: ^1.6.0
   image_picker: ^1.2.1
+  open_filex: ^4.7.0
+  path_provider: ^2.1.5
+  pdf: ^3.11.3
   provider: ^6.1.5+1
   shared_preferences: ^2.2.2
   smooth_page_indicator: ^1.1.0
@@ -51,7 +55,7 @@ dev_dependencies:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/app_logo.png"
+  image_path: "assets/AppLogo.svg"
   remove_alpha_ios: true
   android_disable_round: true
 
@@ -69,6 +73,7 @@ flutter:
     - assets/splash_bg.png
     - assets/login_screen.png
     - assets/google.png
+    - assets/face_scan.jpg
     - assets/Logo1.png
     - assets/Logo2.png
     - assets/Logo3.png

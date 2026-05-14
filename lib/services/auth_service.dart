@@ -1,5 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+
+const _googleWebClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
 
 class AuthService {
   AuthService(this._client);
@@ -35,7 +38,44 @@ class AuthService {
     );
   }
 
-  Future<void> signInWithGoogle() {
+  Future<void> signInWithGoogle() async {
+    if (kIsWeb) {
+      await _signInWithGoogleOAuth();
+      return;
+    }
+
+    final googleSignIn = GoogleSignIn(
+      scopes: const ['email', 'profile'],
+      serverClientId:
+          _googleWebClientId.isEmpty ? null : _googleWebClientId,
+    );
+
+    try {
+      final account = await googleSignIn.signIn();
+      if (account == null) {
+        return;
+      }
+
+      final authentication = await account.authentication;
+      final idToken = authentication.idToken;
+      final accessToken = authentication.accessToken;
+
+      if (idToken != null && accessToken != null) {
+        await _client.auth.signInWithIdToken(
+          provider: supabase.OAuthProvider.google,
+          idToken: idToken,
+          accessToken: accessToken,
+        );
+        return;
+      }
+    } catch (_) {
+      await googleSignIn.signOut().catchError((_) {});
+    }
+
+    await _signInWithGoogleOAuth();
+  }
+
+  Future<void> _signInWithGoogleOAuth() {
     return _client.auth.signInWithOAuth(
       supabase.OAuthProvider.google,
       redirectTo: kIsWeb ? null : 'iprakriti://login-callback/',

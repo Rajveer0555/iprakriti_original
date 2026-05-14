@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,16 @@ import '../core/theme.dart';
 import '../models/user_profile_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/user_profile_provider.dart';
+
+class EditProfileSaveResult {
+  const EditProfileSaveResult({
+    required this.message,
+    required this.photoUploadSucceeded,
+  });
+
+  final String message;
+  final bool photoUploadSucceeded;
+}
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -30,6 +41,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Uint8List? _croppedAvatarBytes;
   bool _didFillFields = false;
   bool _isSaving = false;
+  String? _photoWarningMessage;
 
   @override
   void dispose() {
@@ -45,13 +57,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(currentUserProfileProvider);
     final authUser = ref.watch(authControllerProvider).session?.user;
+    final avatarOverride = ref.watch(profileAvatarOverrideProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFBFA),
       body: SafeArea(
         child: profileAsync.when(
           data: (profile) {
-            _fillFields(profile, authUser);
+            _fillFields(profile, authUser, avatarOverride);
             return _buildForm();
           },
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -75,9 +88,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(26, 30, 26, 22),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 22),
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight - 52),
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 46),
             child: Form(
               key: _formKey,
               child: Column(
@@ -101,18 +114,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Text(
                         'Edit Profile',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontSize: 17,
+                          fontSize: 18,
                           fontWeight: FontWeight.w500,
                           color: Colors.black,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 46),
+                  const SizedBox(height: 34),
                   Center(
                     child: _EditableAvatar(
                       imageBytes: _croppedAvatarBytes,
@@ -121,7 +134,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       onTap: _pickAndCropPhoto,
                     ),
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 40),
                   _ProfileTextField(
                     controller: _nameController,
                     hintText: 'Full name',
@@ -176,7 +189,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                   _validateMeasurement(value, label: 'height'),
                         ),
                       ),
-                      const SizedBox(width: 30),
+                      const SizedBox(width: 18),
                       Expanded(
                         child: _ProfileTextField(
                           controller: _weightController,
@@ -196,7 +209,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 118),
+                  if (_photoWarningMessage != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      _photoWarningMessage!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF8B6A21),
+                        height: 1.45,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 108),
                   SizedBox(
                     width: double.infinity,
                     height: 55,
@@ -207,7 +230,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         foregroundColor: Colors.white,
                         disabledBackgroundColor: const Color(0xFF8BA98E),
                         elevation: 4,
-                        shadowColor: const Color(0x3316641F),
+                        shadowColor: const Color(0x2216641F),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(999),
                         ),
@@ -240,7 +263,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     );
   }
 
-  void _fillFields(UserProfileData profile, dynamic authUser) {
+  void _fillFields(
+    UserProfileData profile,
+    dynamic authUser,
+    String? avatarOverride,
+  ) {
     if (_didFillFields) {
       return;
     }
@@ -260,7 +287,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _selectedGender = profile.gender ?? 'Male';
     _heightController.text = _formatDecimal(profile.heightCm);
     _weightController.text = _formatDecimal(profile.weightKg);
-    _avatarUrl = profile.avatarUrl ?? authAvatar;
+    _avatarUrl = avatarOverride ?? profile.avatarUrl ?? authAvatar;
     _didFillFields = true;
   }
 
@@ -315,13 +342,35 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       var avatarUrl = _avatarUrl;
       final croppedBytes = _croppedAvatarBytes;
       if (croppedBytes != null) {
-        avatarUrl = await ref
-            .read(userServiceProvider)
-            .uploadProfileImage(
-              userId: userId,
-              bytes: croppedBytes,
-              fileExtension: 'png',
-            );
+        try {
+          final previousAvatarUrl = _avatarUrl;
+          avatarUrl = await ref
+              .read(userServiceProvider)
+              .uploadProfileImage(
+                userId: userId,
+                bytes: croppedBytes,
+                fileExtension: 'png',
+              );
+          if (previousAvatarUrl != null && previousAvatarUrl.isNotEmpty) {
+            await NetworkImage(previousAvatarUrl).evict();
+          }
+          ref.read(profileAvatarOverrideProvider.notifier).state = avatarUrl;
+          if (mounted) {
+            setState(() {
+              _avatarUrl = avatarUrl;
+              _croppedAvatarBytes = null;
+            });
+          }
+          _photoWarningMessage = null;
+        } catch (error) {
+          final message = error.toString();
+          if (message.contains('profile-images')) {
+            _photoWarningMessage =
+                'Your profile details were saved, but the new photo could not be uploaded yet.';
+          } else {
+            rethrow;
+          }
+        }
       }
 
       await ref
@@ -341,7 +390,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       if (!mounted) {
         return;
       }
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pop(
+        EditProfileSaveResult(
+          message: _photoWarningMessage ?? 'Profile updated.',
+          photoUploadSucceeded: _photoWarningMessage == null,
+        ),
+      );
     } catch (error) {
       _showMessage(error.toString());
     } finally {
@@ -442,8 +496,8 @@ class _EditableAvatar extends StatelessWidget {
           alignment: Alignment.center,
           children: [
             CircleAvatar(
-              radius: 59,
-              backgroundColor: const Color(0xFFD4D8D6),
+              radius: 58,
+              backgroundColor: const Color(0xFFD0D4D1),
               backgroundImage: imageProvider,
               child:
                   imageProvider == null
@@ -455,20 +509,20 @@ class _EditableAvatar extends StatelessWidget {
                       : null,
             ),
             Positioned(
-              right: 16,
+              right: 14,
               bottom: 14,
               child: Container(
-                width: 20,
-                height: 20,
+                width: 24,
+                height: 24,
                 decoration: BoxDecoration(
-                  color: Colors.black,
+                  color: const Color(0xFF1E5B1D),
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 2),
                 ),
                 child: const Icon(
                   Icons.camera_alt_rounded,
                   color: Colors.white,
-                  size: 12,
+                  size: 14,
                 ),
               ),
             ),
@@ -499,7 +553,7 @@ class _ProfileTextField extends StatelessWidget {
     return DecoratedBox(
       decoration: _fieldShadowDecoration,
       child: SizedBox(
-        height: 56,
+        height: 58,
         child: TextFormField(
           controller: controller,
           keyboardType: keyboardType,
@@ -528,7 +582,7 @@ class _GenderField extends StatelessWidget {
     return DecoratedBox(
       decoration: _fieldShadowDecoration,
       child: SizedBox(
-        height: 56,
+        height: 58,
         child: DropdownButtonFormField<String>(
           value: value,
           items:
@@ -556,9 +610,9 @@ class _GenderField extends StatelessWidget {
 }
 
 final BoxDecoration _fieldShadowDecoration = BoxDecoration(
-  borderRadius: BorderRadius.circular(18),
+  borderRadius: BorderRadius.circular(20),
   boxShadow: const [
-    BoxShadow(color: Color(0x14000000), blurRadius: 4, offset: Offset(0, 1)),
+    BoxShadow(color: Color(0x12000000), blurRadius: 8, offset: Offset(0, 2)),
   ],
 );
 
@@ -566,32 +620,32 @@ InputDecoration _fieldDecoration(String hintText) {
   return InputDecoration(
     hintText: hintText,
     hintStyle: const TextStyle(
-      color: Color(0xFFC4C4C4),
-      fontSize: 16,
+      color: Color(0xFFCFCFCF),
+      fontSize: 17,
       fontWeight: FontWeight.w400,
     ),
     filled: true,
     fillColor: Colors.white,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
-    errorStyle: const TextStyle(height: 0.01, fontSize: 0),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 17),
+    errorStyle: const TextStyle(height: 0.8),
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(20),
       borderSide: const BorderSide(color: Color(0xFFE1E3DF)),
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(20),
       borderSide: const BorderSide(color: Color(0xFFE1E3DF)),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(18),
-      borderSide: const BorderSide(color: Color(0xFFD4D8D3)),
+      borderRadius: BorderRadius.circular(20),
+      borderSide: const BorderSide(color: Color(0xFFCBDBCC), width: 1.2),
     ),
     errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(20),
       borderSide: const BorderSide(color: AppColors.error),
     ),
     focusedErrorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(20),
       borderSide: const BorderSide(color: AppColors.error),
     ),
   );

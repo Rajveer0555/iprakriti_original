@@ -102,7 +102,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   child: Column(
                     children: [
-                      const SizedBox(height: 136),
+                      const SizedBox(height: 150),
                       Text(
                         _isSignUp ? 'Create Account' : 'Welcome Back',
                         textAlign: TextAlign.center,

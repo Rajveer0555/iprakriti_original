@@ -8,7 +8,6 @@ import 'providers/auth_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/informative_screen.dart';
 import 'screens/login_screen.dart';
-import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/splash_screen.dart';
 
 const _supabaseUrl = String.fromEnvironment(
@@ -27,10 +26,7 @@ Future<void> main() async {
 
   if (_supabaseUrl.isNotEmpty && _supabaseAnonKey.isNotEmpty) {
     try {
-      await Supabase.initialize(
-        url: _supabaseUrl,
-        anonKey: _supabaseAnonKey,
-      );
+      await Supabase.initialize(url: _supabaseUrl, anonKey: _supabaseAnonKey);
     } catch (error) {
       initializationError = error.toString();
     }
@@ -44,10 +40,7 @@ Future<void> main() async {
 }
 
 class IPrakritiApp extends StatelessWidget {
-  const IPrakritiApp({
-    super.key,
-    this.initializationError,
-  });
+  const IPrakritiApp({super.key, this.initializationError});
 
   final String? initializationError;
 
@@ -57,15 +50,13 @@ class IPrakritiApp extends StatelessWidget {
       title: 'IPrakriti',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: _supabaseUrl.isEmpty || _supabaseAnonKey.isEmpty
-          ? const _ConfigurationMissingScreen()
-          : initializationError != null
+      home:
+          _supabaseUrl.isEmpty || _supabaseAnonKey.isEmpty
+              ? const _ConfigurationMissingScreen()
+              : initializationError != null
               ? _SupabaseStartupErrorScreen(message: initializationError!)
-          : const SplashScreenWrapper(),
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/onboarding': (context) => const OnboardingScreen(),
-      },
+              : const SplashScreenWrapper(),
+      routes: {'/login': (context) => const LoginScreen()},
     );
   }
 }
@@ -111,8 +102,7 @@ class AuthStateHandler extends ConsumerWidget {
       return const _PostAuthDestination();
     }
 
-    // Show onboarding screen for new users
-    return const OnboardingScreen();
+    return const LoginScreen();
   }
 }
 
@@ -123,7 +113,7 @@ class _PostAuthDestination extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userId = ref.watch(authControllerProvider).session?.user.id;
     if (userId == null) {
-      return const OnboardingScreen();
+      return const LoginScreen();
     }
 
     return FutureBuilder<UserProfileData>(
@@ -166,19 +156,6 @@ class _SplashScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 112,
-                height: 112,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary,
-                ),
-                child: const Icon(
-                  Icons.spa_rounded,
-                  size: 52,
-                  color: Colors.white,
-                ),
-              ),
               const SizedBox(height: AppSpacing.xl),
               Text(
                 'IPrakriti',
@@ -213,10 +190,11 @@ class _ConfigurationMissingScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.error_outline_rounded,
-                  size: 56,
-                  color: AppColors.primary,
+                Image.asset(
+                  'assets/app_logo.png',
+                  width: 88,
+                  height: 88,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
@@ -242,9 +220,7 @@ class _ConfigurationMissingScreen extends StatelessWidget {
 }
 
 class _SupabaseStartupErrorScreen extends StatelessWidget {
-  const _SupabaseStartupErrorScreen({
-    required this.message,
-  });
+  const _SupabaseStartupErrorScreen({required this.message});
 
   final String message;
 
@@ -258,10 +234,11 @@ class _SupabaseStartupErrorScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.wifi_off_rounded,
-                  size: 56,
-                  color: AppColors.primary,
+                Image.asset(
+                  'assets/app_logo.png',
+                  width: 88,
+                  height: 88,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
@@ -292,9 +269,7 @@ class _SupabaseStartupErrorScreen extends StatelessWidget {
 }
 
 class _PostAuthErrorScreen extends StatelessWidget {
-  const _PostAuthErrorScreen({
-    required this.message,
-  });
+  const _PostAuthErrorScreen({required this.message});
 
   final String message;
 
@@ -308,10 +283,11 @@ class _PostAuthErrorScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.error_outline_rounded,
-                  size: 52,
-                  color: AppColors.primary,
+                Image.asset(
+                  'assets/app_logo.png',
+                  width: 88,
+                  height: 88,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(

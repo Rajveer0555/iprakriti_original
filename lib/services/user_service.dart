@@ -15,6 +15,9 @@ class UserService {
   static const _usersRlsMessage =
       'Supabase row-level security is blocking access to "public.users". '
       'Add SELECT, INSERT, and UPDATE policies for the signed-in user.';
+  static const _missingProfileBucketMessage =
+      'Supabase storage bucket "profile-images" is missing. '
+      'Create the bucket before uploading profile photos.';
 
   final SupabaseClient _client;
   final ImagePicker _picker;
@@ -84,13 +87,20 @@ class UserService {
     final path =
         '$userId/profile_${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
 
-    await _client.storage
-        .from('profile-images')
-        .uploadBinary(
-          path,
-          bytes,
-          fileOptions: const FileOptions(upsert: true),
-        );
+    try {
+      await _client.storage
+          .from('profile-images')
+          .uploadBinary(
+            path,
+            bytes,
+            fileOptions: const FileOptions(upsert: true),
+          );
+    } on StorageException catch (error) {
+      if (_isMissingProfileBucket(error)) {
+        throw Exception(_missingProfileBucketMessage);
+      }
+      rethrow;
+    }
 
     return _client.storage.from('profile-images').getPublicUrl(path);
   }
@@ -203,5 +213,10 @@ class UserService {
     return error.code == '42501' &&
         error.message.contains('row-level security policy') &&
         error.message.contains('"users"');
+  }
+
+  bool _isMissingProfileBucket(StorageException error) {
+    return error.statusCode == '404' &&
+        error.message.toLowerCase().contains('bucket not found');
   }
 }

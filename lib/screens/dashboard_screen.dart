@@ -7,11 +7,12 @@ import '../models/user_profile_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/user_profile_provider.dart';
 import '../services/result_service.dart';
+import 'assessment_intro_screen.dart';
 import 'detailed_report_screen.dart';
 import 'dosha_detail_screen.dart';
 import 'edit_profile_screen.dart';
+import 'login_screen.dart';
 import 'profile_settings_screens.dart';
-import 'questionnaire_screen.dart';
 
 final dashboardResultsProvider =
     FutureProvider.autoDispose<List<PrakritiHistoryEntry>>((ref) async {
@@ -45,6 +46,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AuthViewState>(authControllerProvider, (previous, next) {
+      final hadSession = previous?.session != null;
+      final hasSession = next.session != null;
+      if (!hasSession) {
+        ref.read(profileAvatarOverrideProvider.notifier).state = null;
+      }
+      if (hadSession && !hasSession && context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
+      }
+    });
+
     final screens = [
       _HomeTab(
         onOpenReports: () => _selectTab(1),
@@ -103,8 +118,9 @@ class _HomeTab extends ConsumerWidget {
     final profile = ref
         .watch(currentUserProfileProvider)
         .maybeWhen(data: (profile) => profile, orElse: () => null);
+    final avatarOverride = ref.watch(profileAvatarOverrideProvider);
     final fullName = _displayName(user, profile);
-    final avatarUrl = _avatarUrl(user, profile);
+    final avatarUrl = avatarOverride ?? _avatarUrl(user, profile);
     final greeting = _greetingForNow();
     final resultsAsync = ref.watch(dashboardResultsProvider);
 
@@ -196,7 +212,7 @@ class _HomeTab extends ConsumerWidget {
 
   static void _openAssessment(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const QuestionnaireScreen()),
+      MaterialPageRoute<void>(builder: (_) => const AssessmentIntroScreen()),
     );
   }
 
@@ -259,7 +275,7 @@ class _ReportsTab extends ConsumerWidget {
                     onStartAssessment:
                         () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
-                            builder: (_) => const QuestionnaireScreen(),
+                            builder: (_) => const AssessmentIntroScreen(),
                           ),
                         ),
                   )
@@ -385,7 +401,7 @@ class _LearnTab extends StatelessWidget {
             onPressed:
                 () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => const QuestionnaireScreen(),
+                    builder: (_) => const AssessmentIntroScreen(),
                   ),
                 ),
           ),
@@ -626,8 +642,9 @@ class _ProfileTab extends ConsumerWidget {
     final profile = ref
         .watch(currentUserProfileProvider)
         .maybeWhen(data: (profile) => profile, orElse: () => null);
+    final avatarOverride = ref.watch(profileAvatarOverrideProvider);
     final fullName = _displayName(user, profile);
-    final avatarUrl = _avatarUrl(user, profile);
+    final avatarUrl = avatarOverride ?? _avatarUrl(user, profile);
     final email = _displayEmail(user, profile);
 
     return SingleChildScrollView(
@@ -653,16 +670,17 @@ class _ProfileTab extends ConsumerWidget {
             email: email,
             avatarUrl: avatarUrl,
             onEdit: () async {
-              final saved = await Navigator.of(context).push<bool>(
+              final result = await Navigator.of(context)
+                  .push<EditProfileSaveResult>(
                 MaterialPageRoute(builder: (_) => const EditProfileScreen()),
               );
-              if (saved == true) {
+              if (result != null) {
                 ref.invalidate(currentUserProfileProvider);
                 if (!context.mounted) {
                   return;
                 }
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profile updated.')),
+                  SnackBar(content: Text(result.message)),
                 );
               }
             },
@@ -718,9 +736,11 @@ class _ProfileTab extends ConsumerWidget {
                 tint: const Color(0xFFFCE7E6),
                 iconColor: const Color(0xFFFF4A3D),
                 onTap:
-                    authState.isLoading
-                        ? () {}
-                        : ref.read(authControllerProvider.notifier).signOut,
+                    () => _confirmLogout(
+                      context,
+                      ref,
+                      isLoading: authState.isLoading,
+                    ),
               ),
             ],
           ),
@@ -731,6 +751,47 @@ class _ProfileTab extends ConsumerWidget {
 
   void _openProfileScreen(BuildContext context, Widget screen) {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
+  }
+
+  Future<void> _confirmLogout(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool isLoading,
+  }) async {
+    if (isLoading) {
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            title: const Text('Log out'),
+            content: const Text(
+              'Are you sure you want to log out of your account?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                ),
+                child: const Text('Log out'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(authControllerProvider.notifier).signOut();
+    }
   }
 }
 
@@ -1133,7 +1194,7 @@ class _QuickActionCard extends StatelessWidget {
               ),
             ],
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -1143,7 +1204,7 @@ class _QuickActionCard extends StatelessWidget {
                 decoration: BoxDecoration(color: tint, shape: BoxShape.circle),
                 child: Icon(icon, color: const Color(0xFF707070), size: 22),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
               Text(
                 label,
                 textAlign: TextAlign.center,
