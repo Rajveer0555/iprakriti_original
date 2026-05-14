@@ -90,7 +90,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 22),
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight - 46),
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 60),
             child: Form(
               key: _formKey,
               child: Column(
@@ -170,42 +170,38 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     },
                   ),
                   const SizedBox(height: 12),
-                  Row(
+                  Column(
                     children: [
-                      Expanded(
-                        child: _ProfileTextField(
-                          controller: _heightController,
-                          hintText: 'Height',
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d*\.?\d{0,1}'),
-                            ),
-                          ],
-                          validator:
-                              (value) =>
-                                  _validateMeasurement(value, label: 'height'),
+                      _ProfileTextField(
+                        controller: _heightController,
+                        hintText: 'Height',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
                         ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d{0,1}'),
+                          ),
+                        ],
+                        validator:
+                            (value) =>
+                                _validateMeasurement(value, label: 'height'),
                       ),
-                      const SizedBox(width: 18),
-                      Expanded(
-                        child: _ProfileTextField(
-                          controller: _weightController,
-                          hintText: 'Weight',
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d*\.?\d{0,1}'),
-                            ),
-                          ],
-                          validator:
-                              (value) =>
-                                  _validateMeasurement(value, label: 'weight'),
+                      const SizedBox(height: 12),
+                      _ProfileTextField(
+                        controller: _weightController,
+                        hintText: 'Weight',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
                         ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d{0,1}'),
+                          ),
+                        ],
+                        validator:
+                            (value) =>
+                                _validateMeasurement(value, label: 'weight'),
                       ),
                     ],
                   ),
