@@ -19,7 +19,8 @@ class ProcessingScreen extends StatefulWidget {
   State<ProcessingScreen> createState() => _ProcessingScreenState();
 }
 
-class _ProcessingScreenState extends State<ProcessingScreen> {
+class _ProcessingScreenState extends State<ProcessingScreen>
+    with SingleTickerProviderStateMixin {
   static const _messages = [
     'Scanning facial features...',
     'Evaluating lifestyle responses...',
@@ -28,16 +29,22 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
 
   Timer? _stepTimer;
   int _currentStep = 0;
+  late final AnimationController _orbitController;
 
   @override
   void initState() {
     super.initState();
+    _orbitController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2600),
+    )..repeat();
     _scheduleNextStep();
   }
 
   @override
   void dispose() {
     _stepTimer?.cancel();
+    _orbitController.dispose();
     super.dispose();
   }
 
@@ -75,15 +82,10 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                TweenAnimationBuilder<double>(
-                  tween: Tween<double>(
-                    begin: 0,
-                    end: (_currentStep + 1) / _messages.length,
-                  ),
-                  duration: const Duration(milliseconds: 700),
-                  curve: Curves.easeInOut,
-                  builder: (context, value, _) {
-                    return _ProcessingRing(progress: value);
+                AnimatedBuilder(
+                  animation: _orbitController,
+                  builder: (context, _) {
+                    return _ProcessingOrbit(turns: _orbitController.value);
                   },
                 ),
                 const SizedBox(height: 34),
@@ -117,25 +119,6 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                         ),
                   ),
                 ),
-                const SizedBox(height: 28),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    _messages.length,
-                    (index) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 240),
-                      margin: EdgeInsets.only(right: index == _messages.length - 1 ? 0 : 8),
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: index == _currentStep
-                            ? AppColors.primary
-                            : const Color(0xFFD7D7D7),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -145,71 +128,57 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
   }
 }
 
-class _ProcessingRing extends StatelessWidget {
-  const _ProcessingRing({
-    required this.progress,
-  });
+class _ProcessingOrbit extends StatelessWidget {
+  const _ProcessingOrbit({required this.turns});
 
-  final double progress;
+  final double turns;
 
   @override
   Widget build(BuildContext context) {
+    const size = 148.0;
+    const logoSize = 84.0;
+    final angle = turns * 2 * math.pi;
+
     return SizedBox(
-      width: 120,
-      height: 120,
-      child: CustomPaint(
-        painter: _ProcessingRingPainter(progress),
-        child: const Center(
-          child: SizedBox(
-            width: 16,
-            height: 16,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
+      width: size,
+      height: size,
+      child: Center(
+        child: Container(
+          width: 112,
+          height: 112,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                const Color(0xFFEAF7ED),
+                const Color(0xFFEAF7ED).withOpacity(0),
+              ],
+            ),
+          ),
+          child: Center(
+            child: Transform.rotate(
+              angle: angle,
+              child: Container(
+                width: logoSize,
+                height: logoSize,
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF7ABF8A).withOpacity(0.18),
+                      blurRadius: 22,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Image.asset(
+                  'assets/processing_orbit_logo.png',
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),
         ),
       ),
     );
-  }
-}
-
-class _ProcessingRingPainter extends CustomPainter {
-  const _ProcessingRingPainter(this.progress);
-
-  final double progress;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const strokeWidth = 3.0;
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (math.min(size.width, size.height) / 2) - strokeWidth;
-
-    final basePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..color = const Color(0xFFB4D7BA);
-
-    final progressPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round
-      ..color = AppColors.primary;
-
-    canvas.drawCircle(center, radius, basePaint);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi,
-      2 * math.pi * progress,
-      false,
-      progressPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _ProcessingRingPainter oldDelegate) {
-    return oldDelegate.progress != progress;
   }
 }

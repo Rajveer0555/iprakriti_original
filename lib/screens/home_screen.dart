@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:iprakriti_original/core/theme.dart';
-import 'package:iprakriti_original/services/result_service.dart';
+import 'package:iprakriti/core/theme.dart';
+import 'package:iprakriti/services/result_service.dart';
 
 import 'dashboard_screen.dart';
 

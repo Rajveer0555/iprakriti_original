@@ -196,20 +196,22 @@ class AuthController extends StateNotifier<AuthViewState> {
     );
   }
 
-  Future<void> signInWithGoogle() async {
+  Future<bool> signInWithGoogle() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       await _repository.signInWithGoogle();
       state = state.copyWith(isLoading: false);
+      return true;
     } catch (error) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: error.toString(),
+        errorMessage: _friendlyAuthError(error),
       );
+      return false;
     }
   }
 
-  Future<void> signInWithPassword({
+  Future<bool> signInWithPassword({
     required String email,
     required String password,
   }) async {
@@ -220,15 +222,17 @@ class AuthController extends StateNotifier<AuthViewState> {
         password: password,
       );
       state = state.copyWith(isLoading: false);
+      return true;
     } catch (error) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: error.toString(),
+        errorMessage: _friendlyAuthError(error),
       );
+      return false;
     }
   }
 
-  Future<void> signUpWithPassword({
+  Future<bool> signUpWithPassword({
     required String name,
     required String email,
     required String password,
@@ -241,11 +245,13 @@ class AuthController extends StateNotifier<AuthViewState> {
         password: password,
       );
       state = state.copyWith(isLoading: false);
+      return true;
     } catch (error) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: error.toString(),
+        errorMessage: _friendlyAuthError(error),
       );
+      return false;
     }
   }
 
@@ -262,7 +268,7 @@ class AuthController extends StateNotifier<AuthViewState> {
 
       state = state.copyWith(
         isLoading: false,
-        errorMessage: error.toString(),
+        errorMessage: _friendlyAuthError(error),
       );
     }
   }
@@ -290,6 +296,36 @@ class AuthController extends StateNotifier<AuthViewState> {
     final message = error.toString().toLowerCase();
     return message.contains('refresh_token_not_found') ||
         message.contains('invalid refresh token');
+  }
+
+  String _friendlyAuthError(Object error) {
+    if (error is supabase.AuthApiException) {
+      final message = error.message.toLowerCase();
+      if (message.contains('invalid login credentials')) {
+        return 'The email or password is incorrect. Please try again.';
+      }
+      if (message.contains('email not confirmed')) {
+        return 'Please verify your email address before signing in.';
+      }
+      if (message.contains('user already registered')) {
+        return 'An account with this email already exists. Please sign in instead.';
+      }
+      if (message.contains('signup is disabled')) {
+        return 'Email sign up is currently unavailable. Please try again later.';
+      }
+    }
+
+    final message = error.toString().toLowerCase();
+    if (message.contains('connection timed out') ||
+        message.contains('socketexception') ||
+        message.contains('authretryablefetchexception') ||
+        message.contains('network is unreachable') ||
+        message.contains('failed host lookup') ||
+        message.contains('timed out')) {
+      return 'Unable to reach the server right now. Please check your internet connection and try again.';
+    }
+
+    return 'Something went wrong while signing in. Please try again.';
   }
 
   @override

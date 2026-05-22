@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iprakriti_original/models/question_model.dart';
+import 'package:iprakriti/models/question_model.dart';
 
 import '../core/theme.dart';
 import '../models/user_profile_model.dart';

@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:iprakriti_original/main.dart';
+import 'package:iprakriti/main.dart';
 
 void main() {
   testWidgets('boots the app shell', (WidgetTester tester) async {

@@ -22,6 +22,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isSignUp = false;
+  _AuthButtonAction? _activeAction;
+  bool _isGoogleDialogVisible = false;
 
   @override
   void dispose() {
@@ -79,6 +81,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final authState = ref.watch(authControllerProvider);
     final isLoading = authState.isLoading;
+    if (!isLoading && _activeAction != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _activeAction = null;
+          });
+        }
+      });
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFEFF8FF),
@@ -153,7 +164,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           }
                           return null;
                         },
-                        suffix: _isSignUp ? null : const _VerifiedBadge(),
                       ),
                       const SizedBox(height: 24),
                       _AuthField(
@@ -235,8 +245,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       SizedBox(
                         width: double.infinity,
                         height: 46,
-                        child: ElevatedButton(
-                          onPressed: isLoading ? null : _submitPrimaryAction,
+                          child: ElevatedButton(
+                            onPressed: isLoading ? null : _submitPrimaryAction,
                           style: ElevatedButton.styleFrom(
                             minimumSize: const Size(0, 46),
                             backgroundColor: const Color(0xFF16641F),
@@ -247,7 +257,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: isLoading
+                          child: isLoading &&
+                                  _activeAction == _AuthButtonAction.primary
                               ? const SizedBox(
                                   width: 34,
                                   height: 34,
@@ -301,9 +312,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: ElevatedButton(
                             onPressed: isLoading
                                 ? null
-                                : ref
-                                    .read(authControllerProvider.notifier)
-                                    .signInWithGoogle,
+                                : _submitGoogleAction,
                             style: ElevatedButton.styleFrom(
                               minimumSize: const Size(0, 46),
                               backgroundColor: const Color(0xFF16641F),
@@ -314,25 +323,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                Text(
-                                  'Continue with',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
+                            child: isLoading &&
+                                    _activeAction == _AuthButtonAction.google
+                                ? const SizedBox(
+                                    width: 34,
+                                    height: 34,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 3,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Text(
+                                        'Continue with',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Image(
+                                        image: AssetImage('assets/google.png'),
+                                        width: 22,
+                                        height: 22,
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                SizedBox(width: 8),
-                                Image(
-                                  image: AssetImage('assets/google.png'),
-                                  width: 22,
-                                  height: 22,
-                                ),
-                              ],
-                            ),
                           ),
                         ),
                       ],
@@ -381,15 +400,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
+    setState(() {
+      _activeAction = _AuthButtonAction.primary;
+    });
+
     final notifier = ref.read(authControllerProvider.notifier);
 
     if (_isSignUp) {
-      await notifier.signUpWithPassword(
+      final success = await notifier.signUpWithPassword(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-      if (!mounted) {
+      if (!mounted || !success) {
         return;
       }
       ScaffoldMessenger.of(context)
@@ -397,7 +420,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ..showSnackBar(
           const SnackBar(
             content: Text(
-              'Account created successfully.',
+              'Account created. If email verification is enabled, please check your inbox before signing in.',
             ),
           ),
         );
@@ -406,6 +429,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+    }
+  }
+
+  Future<void> _submitGoogleAction() async {
+    setState(() {
+      _activeAction = _AuthButtonAction.google;
+      _isGoogleDialogVisible = true;
+    });
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const _GoogleSignInDialog(),
+    ).whenComplete(() {
+      if (mounted) {
+        setState(() {
+          _isGoogleDialogVisible = false;
+        });
+      } else {
+        _isGoogleDialogVisible = false;
+      }
+    });
+
+    try {
+      await ref.read(authControllerProvider.notifier).signInWithGoogle();
+    } finally {
+      if (mounted && _isGoogleDialogVisible) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
     }
   }
 
@@ -447,8 +499,6 @@ class _AuthField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasVerifiedBorder = suffix is _VerifiedBadge;
-
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
@@ -480,11 +530,9 @@ class _AuthField extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: hasVerifiedBorder
-                ? const Color(0xFF179D45)
-                : const Color(0xFFE6E6E6),
-            width: hasVerifiedBorder ? 1.1 : 1,
+          borderSide: const BorderSide(
+            color: Color(0xFFE6E6E6),
+            width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
@@ -499,22 +547,74 @@ class _AuthField extends StatelessWidget {
   }
 }
 
-class _VerifiedBadge extends StatelessWidget {
-  const _VerifiedBadge();
+class _GoogleSignInDialog extends StatelessWidget {
+  const _GoogleSignInDialog();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(13),
-      decoration: const BoxDecoration(
-        color: Color(0xFF78E62B),
-        shape: BoxShape.circle,
-      ),
-      child: const Icon(
-        Icons.check,
-        size: 14,
-        color: Colors.white,
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x16000000),
+              blurRadius: 34,
+              offset: Offset(0, 18),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/processing_orbit_logo.png',
+              width: 82,
+              height: 82,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 18),
+            const Text(
+              'Connecting your Google account',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Please complete the sign-in step to continue into your wellness dashboard.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.45,
+                color: Color(0xFF5A5A5A),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const SizedBox(
+              width: 34,
+              height: 34,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                color: Color(0xFF16641F),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+enum _AuthButtonAction {
+  primary,
+  google,
 }
