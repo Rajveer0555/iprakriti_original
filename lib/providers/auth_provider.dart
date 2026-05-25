@@ -324,6 +324,9 @@ class AuthController extends StateNotifier<AuthViewState> {
         message.contains('timed out')) {
       return 'Unable to reach the server right now. Please check your internet connection and try again.';
     }
+    if (message.contains('cancelled') || message.contains('canceled')) {
+      return 'Google sign-in was cancelled before we could continue.';
+    }
 
     return 'Something went wrong while signing in. Please try again.';
   }

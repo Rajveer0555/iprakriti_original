@@ -23,7 +23,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscureConfirmPassword = true;
   bool _isSignUp = false;
   _AuthButtonAction? _activeAction;
-  bool _isGoogleDialogVisible = false;
 
   @override
   void dispose() {
@@ -41,32 +40,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final hasSession = next.session != null;
 
       if (!hadSession && hasSession) {
-        Future<void>(() async {
-          final userId = next.session?.user.id;
-          if (userId == null || !mounted) {
-            return;
-          }
-
-          Widget destination = const InformativeScreen();
-          if (!_isSignUp) {
-            try {
-              final profile =
-                  await ref.read(userServiceProvider).fetchUserProfile(userId);
-              if (profile.isComplete) {
-                destination = const DashboardScreen(initialIndex: 0);
-              }
-            } catch (_) {}
-          }
-
-          if (!mounted) {
-            return;
-          }
-
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute<void>(builder: (_) => destination),
-            (route) => false,
-          );
-        });
+        _handleSignedInUser(next.session?.user.id);
         return;
       }
 
@@ -435,30 +409,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submitGoogleAction() async {
     setState(() {
       _activeAction = _AuthButtonAction.google;
-      _isGoogleDialogVisible = true;
     });
 
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const _GoogleSignInDialog(),
-    ).whenComplete(() {
-      if (mounted) {
-        setState(() {
-          _isGoogleDialogVisible = false;
-        });
-      } else {
-        _isGoogleDialogVisible = false;
-      }
-    });
+    await ref.read(authControllerProvider.notifier).signInWithGoogle();
+  }
 
-    try {
-      await ref.read(authControllerProvider.notifier).signInWithGoogle();
-    } finally {
-      if (mounted && _isGoogleDialogVisible) {
-        Navigator.of(context, rootNavigator: true).pop();
-      }
+  Future<void> _handleSignedInUser(String? userId) async {
+    if (userId == null) {
+      return;
     }
+
+    Widget destination = const InformativeScreen();
+    if (!_isSignUp) {
+      try {
+        final profile = await ref.read(userServiceProvider).fetchUserProfile(userId);
+        if (profile.isComplete) {
+          destination = const DashboardScreen(initialIndex: 0);
+        }
+      } catch (_) {}
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => destination),
+      (route) => false,
+    );
   }
 
   void _toggleMode() {
@@ -541,73 +519,6 @@ class _AuthField extends StatelessWidget {
             color: Color(0xFF179D45),
             width: 1.2,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _GoogleSignInDialog extends StatelessWidget {
-  const _GoogleSignInDialog();
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x16000000),
-              blurRadius: 34,
-              offset: Offset(0, 18),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              'assets/processing_orbit_logo.png',
-              width: 82,
-              height: 82,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'Connecting your Google account',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Please complete the sign-in step to continue into your wellness dashboard.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.45,
-                color: Color(0xFF5A5A5A),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const SizedBox(
-              width: 34,
-              height: 34,
-              child: CircularProgressIndicator(
-                strokeWidth: 3,
-                color: Color(0xFF16641F),
-              ),
-            ),
-          ],
         ),
       ),
     );

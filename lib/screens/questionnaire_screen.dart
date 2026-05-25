@@ -7,6 +7,7 @@ import '../providers/auth_provider.dart';
 import '../providers/question_provider.dart';
 import 'dashboard_screen.dart';
 import 'processing_screen.dart';
+import 'widgets/assessment_step_badge.dart';
 
 class QuestionnaireScreen extends ConsumerStatefulWidget {
   const QuestionnaireScreen({super.key});
@@ -73,47 +74,119 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
     final state = ref.watch(questionnaireProvider);
     final question = state.currentQuestion;
     final screenWidth = MediaQuery.of(context).size.width;
+    final progress = state.progress.clamp(0.0, 1.0);
+    final completedPercent = (progress * 100).round();
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lifestyle Questions'),
-        leading: IconButton(
-          onPressed: () {
-            if (state.isFirstQuestion) {
-              Navigator.of(context).pop();
-            } else {
-              ref.read(questionnaireProvider.notifier).previousQuestion();
-            }
-          },
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(14),
-          child: LinearProgressIndicator(
-            value: state.progress,
-            minHeight: 3,
-            backgroundColor: AppColors.border,
-            color: AppColors.primary,
-          ),
-        ),
-      ),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.fromLTRB(0, 10, 0, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Question ${state.currentIndex + 1} of ${state.questions.length}',
-                style: Theme.of(context).textTheme.bodyMedium,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        if (state.isFirstQuestion) {
+                          Navigator.of(context).pop();
+                        } else {
+                          ref.read(questionnaireProvider.notifier).previousQuestion();
+                        }
+                      },
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                    ),
+                    const SizedBox(width: 4),
+                    const Expanded(
+                      child: Text(
+                        'Lifestyle Questions',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    const AssessmentStepBadge(
+                      step: 3,
+                      totalSteps: 3,
+                      backgroundColor: Color(0xFFF6F6F6),
+                      activeColor: AppColors.primary,
+                      inactiveColor: Color(0xFFD8D8D8),
+                      textColor: Color(0xFF757575),
+                      borderColor: Color(0xFFE7E7E7),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0, end: progress),
+                        duration: const Duration(milliseconds: 220),
+                        builder: (context, value, child) {
+                          return LinearProgressIndicator(
+                            value: value,
+                            minHeight: 6,
+                            backgroundColor: const Color(0xFFECECEC),
+                            color: AppColors.primary,
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text(
+                          '$completedPercent% complete',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${state.questions.length - state.currentIndex - 1} remaining',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 28),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: Text(
+                  'Question ${state.currentIndex + 1} of ${state.questions.length}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ),
               const SizedBox(height: AppSpacing.xl),
-              Text(
-                question.question,
-                style: Theme.of(context).textTheme.headlineSmall,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: Text(
+                  question.question,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
               ),
               const SizedBox(height: AppSpacing.xl),
               Expanded(
                 child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   itemCount: question.options.length,
                   separatorBuilder: (_, __) =>
                       const SizedBox(height: AppSpacing.md),

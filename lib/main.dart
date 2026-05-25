@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/theme.dart';
@@ -8,6 +10,7 @@ import 'providers/auth_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/informative_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/onboarding/onboarding_screen.dart' as onboarding;
 import 'screens/splash_screen.dart';
 
 const _supabaseUrl = String.fromEnvironment(
@@ -22,6 +25,9 @@ const _supabaseAnonKey = String.fromEnvironment(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   String? initializationError;
 
   if (_supabaseUrl.isNotEmpty && _supabaseAnonKey.isNotEmpty) {
@@ -75,7 +81,7 @@ class _SplashScreenWrapperState extends State<SplashScreenWrapper> {
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const AuthStateHandler()),
+          MaterialPageRoute(builder: (context) => const _AppEntryGate()),
         );
       }
     });
@@ -84,6 +90,33 @@ class _SplashScreenWrapperState extends State<SplashScreenWrapper> {
   @override
   Widget build(BuildContext context) {
     return const SplashScreen();
+  }
+}
+
+class _AppEntryGate extends StatelessWidget {
+  const _AppEntryGate();
+
+  Future<bool> _isOnboardingComplete() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('onboarding_completed') ?? false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _isOnboardingComplete(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _SplashScreen();
+        }
+
+        if (snapshot.data != true) {
+          return const onboarding.OnboardingScreen();
+        }
+
+        return const AuthStateHandler();
+      },
+    );
   }
 }
 

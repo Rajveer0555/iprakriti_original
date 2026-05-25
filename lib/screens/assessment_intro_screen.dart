@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
-import 'questionnaire_screen.dart';
+import 'face_scan_screen.dart';
+import 'widgets/assessment_step_badge.dart';
 
 class AssessmentIntroScreen extends StatelessWidget {
   const AssessmentIntroScreen({super.key});
@@ -23,13 +24,24 @@ class AssessmentIntroScreen extends StatelessWidget {
                     icon: const Icon(Icons.arrow_back_ios_new_rounded),
                   ),
                   const SizedBox(width: 2),
-                  Text(
-                    'Prakruti Assessment',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
+                  Expanded(
+                    child: Text(
+                      'Prakruti Assessment',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
                     ),
+                  ),
+                  const AssessmentStepBadge(
+                    step: 1,
+                    totalSteps: 3,
+                    backgroundColor: Color(0xFFF6F6F6),
+                    activeColor: AppColors.primary,
+                    inactiveColor: Color(0xFFD8D8D8),
+                    textColor: Color(0xFF757575),
+                    borderColor: Color(0xFFE7E7E7),
                   ),
                 ],
               ),
@@ -92,7 +104,7 @@ class AssessmentIntroScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => const QuestionnaireScreen(),
+                        builder: (_) => const FaceScanScreen(),
                       ),
                     );
                   },
