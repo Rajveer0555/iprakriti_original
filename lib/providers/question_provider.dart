@@ -49,112 +49,218 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
 
   static final List<QuestionModel> _questions = [
     QuestionModel(
-      id: 'digestion',
-      question: 'How is your digestion usually?',
+      id: 'sleep_pattern',
+      question: 'How would you describe your sleep?',
       options: const [
         QuestionOption(
-          label: 'Very strong, can eat anything',
-          scores: {Dosha.pitta: 3, Dosha.vata: 1},
+          label: 'Interrupted, less than 6 hours',
+          scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Sharp and quick, gets hungry often',
+          label: 'Usually 6 to 8 hours',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Slow but steady',
+          label: 'More than 8 hours and sound sleep',
           scores: {Dosha.kapha: 3},
-        ),
-        QuestionOption(
-          label: 'Irregular and sensitive',
-          scores: {Dosha.vata: 3},
         ),
       ],
     ),
     QuestionModel(
-      id: 'energy',
-      question: 'Which energy pattern feels most like you?',
+      id: 'sleep_duration',
+      question: 'How long does your sleep usually feel overall?',
       options: const [
         QuestionOption(
-          label: 'Bursts of energy, then I need rest',
+          label: 'Less',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Strong, focused, and competitive',
+          label: 'Medium',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Calm, stable, and consistent',
+          label: 'More',
           scores: {Dosha.kapha: 3},
-        ),
-        QuestionOption(
-          label: 'It changes a lot depending on stress',
-          scores: {Dosha.vata: 2, Dosha.pitta: 1},
         ),
       ],
     ),
     QuestionModel(
-      id: 'climate',
-      question: 'Which climate affects you the most?',
+      id: 'excitement',
+      question: 'When you get excited, what is your natural pattern?',
       options: const [
         QuestionOption(
-          label: 'Cold, windy weather throws me off balance',
+          label: 'Quick excitement, but it cools down quickly',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Heat makes me irritable or drained',
+          label: 'Quick excitement, but slow cooling',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Damp and cold makes me feel heavy',
+          label: 'Excitement is rare',
           scores: {Dosha.kapha: 3},
-        ),
-        QuestionOption(
-          label: 'I adapt well to most climates',
-          scores: {Dosha.kapha: 1, Dosha.pitta: 1, Dosha.vata: 1},
         ),
       ],
     ),
     QuestionModel(
-      id: 'mind',
-      question: 'How would you describe your mind in daily life?',
+      id: 'working_style',
+      question: 'How do you usually work?',
       options: const [
         QuestionOption(
-          label: 'Creative, fast, and full of ideas',
+          label: 'Quick',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Driven, sharp, and decisive',
+          label: 'Medium pace',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Patient, grounded, and thoughtful',
+          label: 'Slow',
           scores: {Dosha.kapha: 3},
-        ),
-        QuestionOption(
-          label: 'Focused but can become overwhelmed quickly',
-          scores: {Dosha.vata: 1, Dosha.pitta: 2},
         ),
       ],
     ),
     QuestionModel(
-      id: 'sleep',
-      question: 'What does your sleep usually feel like?',
+      id: 'other_movements',
+      question: 'How would you describe your other body movements or habits?',
       options: const [
         QuestionOption(
-          label: 'Light sleep and easy to wake up',
+          label: 'Fast and unnecessary',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Moderate sleep, but I wake if overheated',
+          label: 'Moderate',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Deep, long, and hard to interrupt',
+          label: 'Slow and steady',
           scores: {Dosha.kapha: 3},
         ),
+      ],
+    ),
+    QuestionModel(
+      id: 'strength',
+      question: 'How is your strength usually?',
+      options: const [
         QuestionOption(
-          label: 'Unpredictable depending on stress or routine',
-          scores: {Dosha.vata: 2, Dosha.kapha: 1},
+          label: 'Less, I fatigue easily',
+          scores: {Dosha.vata: 3},
+        ),
+        QuestionOption(
+          label: 'Moderate',
+          scores: {Dosha.pitta: 3},
+        ),
+        QuestionOption(
+          label: 'Good',
+          scores: {Dosha.kapha: 3},
+        ),
+      ],
+    ),
+    QuestionModel(
+      id: 'problem_handling',
+      question: 'How do you usually handle problems?',
+      options: const [
+        QuestionOption(
+          label: 'I tend to worry',
+          scores: {Dosha.vata: 3},
+        ),
+        QuestionOption(
+          label: 'I become irritable or angry',
+          scores: {Dosha.pitta: 3},
+        ),
+        QuestionOption(
+          label: 'I stay calm and stable',
+          scores: {Dosha.kapha: 3},
+        ),
+      ],
+    ),
+    QuestionModel(
+      id: 'control_on_desires',
+      question: 'How much control do you usually have over your desires?',
+      options: const [
+        QuestionOption(
+          label: 'Poor control',
+          scores: {Dosha.vata: 3},
+        ),
+        QuestionOption(
+          label: 'Moderate control',
+          scores: {Dosha.pitta: 3},
+        ),
+        QuestionOption(
+          label: 'Good control',
+          scores: {Dosha.kapha: 3},
+        ),
+      ],
+    ),
+    QuestionModel(
+      id: 'concentration',
+      question: 'How is your concentration usually?',
+      options: const [
+        QuestionOption(
+          label: 'Poor',
+          scores: {Dosha.vata: 3},
+        ),
+        QuestionOption(
+          label: 'Good when I am interested',
+          scores: {Dosha.pitta: 3},
+        ),
+        QuestionOption(
+          label: 'Excellent',
+          scores: {Dosha.kapha: 3},
+        ),
+      ],
+    ),
+    QuestionModel(
+      id: 'grasping',
+      question: 'How quickly do you grasp or understand things?',
+      options: const [
+        QuestionOption(
+          label: 'Quick, but poor',
+          scores: {Dosha.vata: 3},
+        ),
+        QuestionOption(
+          label: 'Quick and good',
+          scores: {Dosha.pitta: 3},
+        ),
+        QuestionOption(
+          label: 'Slow',
+          scores: {Dosha.kapha: 3},
+        ),
+      ],
+    ),
+    QuestionModel(
+      id: 'storage',
+      question: 'How well do you store or retain information?',
+      options: const [
+        QuestionOption(
+          label: 'Poor',
+          scores: {Dosha.vata: 3},
+        ),
+        QuestionOption(
+          label: 'Average',
+          scores: {Dosha.pitta: 3},
+        ),
+        QuestionOption(
+          label: 'Good',
+          scores: {Dosha.kapha: 3},
+        ),
+      ],
+    ),
+    QuestionModel(
+      id: 'memory',
+      question: 'How would you describe your memory?',
+      options: const [
+        QuestionOption(
+          label: 'Less',
+          scores: {Dosha.vata: 3},
+        ),
+        QuestionOption(
+          label: 'Average',
+          scores: {Dosha.pitta: 3},
+        ),
+        QuestionOption(
+          label: 'Good',
+          scores: {Dosha.kapha: 3},
         ),
       ],
     ),
