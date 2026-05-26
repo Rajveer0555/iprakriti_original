@@ -4,8 +4,8 @@ import '../models/question_model.dart';
 
 final questionnaireProvider =
     StateNotifierProvider<QuestionnaireController, QuestionnaireState>((ref) {
-  return QuestionnaireController();
-});
+      return QuestionnaireController();
+    });
 
 class QuestionnaireState {
   const QuestionnaireState({
@@ -39,97 +39,149 @@ class QuestionnaireState {
 
 class QuestionnaireController extends StateNotifier<QuestionnaireState> {
   QuestionnaireController()
-      : super(
-          QuestionnaireState(
-            questions: _questions,
-            selectedAnswers: const {},
-            currentIndex: 0,
-          ),
-        );
+    : super(
+        QuestionnaireState(
+          questions: _questions,
+          selectedAnswers: const {},
+          currentIndex: 0,
+        ),
+      );
 
   static final List<QuestionModel> _questions = [
     QuestionModel(
+      id: 'appetite',
+      question: 'How would you describe your appetite and hunger?',
+      options: const [
+        QuestionOption(
+          label: 'Variable and irregular, hunger comes and goes unpredictably',
+          scores: {Dosha.vata: 3},
+        ),
+        QuestionOption(
+          label: 'Strong and sharp, I get very hungry at regular mealtimes',
+          scores: {Dosha.pitta: 3},
+        ),
+        QuestionOption(
+          label: 'Slow and low, I can skip meals comfortably',
+          scores: {Dosha.kapha: 3},
+        ),
+      ],
+    ),
+    QuestionModel(
+      id: 'meal_skipped',
+      question: 'What happens if you skip a meal or change your eating routine?',
+      options: const [
+        QuestionOption(
+          label: 'I feel constipated or gassy and bloated',
+          scores: {Dosha.vata: 3},
+        ),
+        QuestionOption(
+          label: 'I get headaches or feel nauseated',
+          scores: {Dosha.pitta: 3},
+        ),
+        QuestionOption(
+          label: 'Mild discomfort or nothing much changes',
+          scores: {Dosha.kapha: 3},
+        ),
+      ],
+    ),
+    QuestionModel(
+      id: 'stool_consistency',
+      question: 'How would you describe your stool consistency usually?',
+      options: const [
+        QuestionOption(label: 'Hard and dry', scores: {Dosha.vata: 3}),
+        QuestionOption(
+          label: 'Semisolid or sometimes loose',
+          scores: {Dosha.pitta: 3},
+        ),
+        QuestionOption(
+          label: 'Well-formed and regular',
+          scores: {Dosha.kapha: 3},
+        ),
+      ],
+    ),
+    QuestionModel(
       id: 'sleep_pattern',
-      question: 'How would you describe your sleep?',
+      question: 'How would you describe your typical sleep pattern?',
       options: const [
         QuestionOption(
-          label: 'Interrupted, less than 6 hours',
+          label: 'Interrupted or disturbed, usually less than 6 hours',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Usually 6 to 8 hours',
+          label: 'Moderate and regular, about 6 to 8 hours',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'More than 8 hours and sound sleep',
+          label: 'Deep and sound, more than 8 hours',
           scores: {Dosha.kapha: 3},
         ),
       ],
     ),
     QuestionModel(
-      id: 'sleep_duration',
-      question: 'How long does your sleep usually feel overall?',
+      id: 'work_duration',
+      question:
+          'How much work or activity can you sustain before feeling tired?',
       options: const [
         QuestionOption(
-          label: 'Less',
+          label: 'Less, I tire quickly and need frequent breaks',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Medium',
+          label: 'Medium, I work well for moderate stretches',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'More',
+          label: 'More, I have naturally high stamina and endurance',
           scores: {Dosha.kapha: 3},
         ),
       ],
     ),
     QuestionModel(
-      id: 'excitement',
-      question: 'When you get excited, what is your natural pattern?',
+      id: 'excitement_response',
+      question: 'How do you respond to exciting or new situations?',
       options: const [
         QuestionOption(
-          label: 'Quick excitement, but it cools down quickly',
+          label: 'I get excited quickly and cool down just as fast',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Quick excitement, but slow cooling',
+          label: 'I get excited quickly but take time to calm down',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Excitement is rare',
+          label: 'I rarely get excited, I stay naturally calm',
           scores: {Dosha.kapha: 3},
         ),
       ],
     ),
     QuestionModel(
       id: 'working_style',
-      question: 'How do you usually work?',
+      question: 'How would you describe your general working style?',
       options: const [
         QuestionOption(
-          label: 'Quick',
+          label: 'Quick, I like to act fast and move on',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Medium pace',
+          label: 'Medium, I work steadily with clear focus',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Slow',
+          label: 'Slow, I take my time and am very thorough',
           scores: {Dosha.kapha: 3},
         ),
       ],
     ),
     QuestionModel(
-      id: 'other_movements',
-      question: 'How would you describe your other body movements or habits?',
+      id: 'body_movements',
+      question: 'How would you describe your body movements and gestures?',
       options: const [
         QuestionOption(
-          label: 'Fast and unnecessary',
+          label: 'Fast and sometimes restless or unnecessary',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Moderate',
+          label: 'Moderate and purposeful',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
@@ -140,28 +192,28 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
     ),
     QuestionModel(
       id: 'strength',
-      question: 'How is your strength usually?',
+      question: 'How would you describe your physical strength and endurance?',
       options: const [
         QuestionOption(
-          label: 'Less, I fatigue easily',
+          label: 'Less strength, I fatigue easily',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Moderate',
+          label: 'Moderate strength and endurance',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Good',
+          label: 'Good strength, I have natural physical endurance',
           scores: {Dosha.kapha: 3},
         ),
       ],
     ),
     QuestionModel(
       id: 'problem_handling',
-      question: 'How do you usually handle problems?',
+      question: 'How do you usually respond when you face a problem or stress?',
       options: const [
         QuestionOption(
-          label: 'I tend to worry',
+          label: 'I tend to worry and feel anxious',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
@@ -176,90 +228,108 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
     ),
     QuestionModel(
       id: 'control_on_desires',
-      question: 'How much control do you usually have over your desires?',
+      question: 'How well can you control your desires and impulses?',
       options: const [
         QuestionOption(
-          label: 'Poor control',
+          label: 'Poor control, I often act on impulse',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Moderate control',
+          label: 'Moderate control, I manage most of the time',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Good control',
+          label: 'Good control, I am disciplined and steady',
           scores: {Dosha.kapha: 3},
         ),
       ],
     ),
     QuestionModel(
       id: 'concentration',
-      question: 'How is your concentration usually?',
+      question: 'How would you rate your ability to concentrate?',
       options: const [
         QuestionOption(
-          label: 'Poor',
+          label: 'Poor, my mind wanders frequently',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Good when I am interested',
+          label: 'Good when I am genuinely interested in the topic',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Excellent',
+          label: 'Excellent, I can focus deeply for long periods',
           scores: {Dosha.kapha: 3},
         ),
       ],
     ),
     QuestionModel(
-      id: 'grasping',
-      question: 'How quickly do you grasp or understand things?',
+      id: 'grasping_power',
+      question: 'How quickly do you grasp or learn new things?',
       options: const [
         QuestionOption(
-          label: 'Quick, but poor',
+          label: 'Quick to grasp but I tend to forget easily',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Quick and good',
+          label: 'Quick to grasp and my retention is good',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Slow',
+          label: 'Slow to grasp but once I learn it stays permanently',
           scores: {Dosha.kapha: 3},
         ),
       ],
     ),
     QuestionModel(
       id: 'storage',
-      question: 'How well do you store or retain information?',
+      question: 'How well do you retain information over time?',
       options: const [
         QuestionOption(
-          label: 'Poor',
+          label: 'Poor, I often forget what I recently learned',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Average',
+          label: 'Average, I remember most important things',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Good',
+          label: 'Good, I have strong and reliable long-term retention',
           scores: {Dosha.kapha: 3},
         ),
       ],
     ),
     QuestionModel(
       id: 'memory',
-      question: 'How would you describe your memory?',
+      question: 'How would you describe your overall memory?',
       options: const [
         QuestionOption(
-          label: 'Less',
+          label: 'Less or forgetful, I lose track of things easily',
           scores: {Dosha.vata: 3},
         ),
         QuestionOption(
-          label: 'Average',
+          label: 'Average, neither particularly strong nor weak',
           scores: {Dosha.pitta: 3},
         ),
         QuestionOption(
-          label: 'Good',
+          label: 'Good, I remember people, events, and details well',
+          scores: {Dosha.kapha: 3},
+        ),
+      ],
+    ),
+    QuestionModel(
+      id: 'body_frame',
+      question: 'How would you describe your natural body frame?',
+      options: const [
+        QuestionOption(
+          label: 'Thin and light, hard to gain weight',
+          scores: {Dosha.vata: 3},
+        ),
+        QuestionOption(
+          label: 'Medium and muscular, moderate build',
+          scores: {Dosha.pitta: 3},
+        ),
+        QuestionOption(
+          label: 'Large or stocky, gain weight easily',
           scores: {Dosha.kapha: 3},
         ),
       ],
@@ -276,7 +346,6 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
     if (state.selectedOptionIndex == null || state.isLastQuestion) {
       return;
     }
-
     state = state.copyWith(currentIndex: state.currentIndex + 1);
   }
 
@@ -284,7 +353,6 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
     if (state.isFirstQuestion) {
       return;
     }
-
     state = state.copyWith(currentIndex: state.currentIndex - 1);
   }
 
@@ -296,7 +364,78 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
     );
   }
 
-  PrakritiAssessmentResult calculateResult() {
+  PrakritiAssessmentResult calculateResult({
+    required Map<int, int> faceFeatureAnswers,
+  }) {
+    final faceDistribution = _distributionFromFaceAnswers(faceFeatureAnswers);
+    final quizDistribution = _distributionFromQuizAnswers();
+
+    final weightedVata = (faceDistribution[Dosha.vata] ?? 0) * 0.4 +
+        (quizDistribution[Dosha.vata] ?? 0) * 0.6;
+    final weightedPitta = (faceDistribution[Dosha.pitta] ?? 0) * 0.4 +
+        (quizDistribution[Dosha.pitta] ?? 0) * 0.6;
+    final weightedKapha = (faceDistribution[Dosha.kapha] ?? 0) * 0.4 +
+        (quizDistribution[Dosha.kapha] ?? 0) * 0.6;
+
+    final vataScore = (weightedVata * 1000).round();
+    final pittaScore = (weightedPitta * 1000).round();
+    final kaphaScore = (weightedKapha * 1000).round();
+
+    final resultMap = {
+      Dosha.vata: vataScore,
+      Dosha.pitta: pittaScore,
+      Dosha.kapha: kaphaScore,
+    };
+
+    final dominant = resultMap.entries.reduce(
+      (a, b) => a.value >= b.value ? a : b,
+    );
+
+    return PrakritiAssessmentResult(
+      vataScore: vataScore,
+      pittaScore: pittaScore,
+      kaphaScore: kaphaScore,
+      finalPrakriti: dominant.key.label,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  Map<Dosha, double> _distributionFromFaceAnswers(Map<int, int> faceAnswers) {
+    if (faceAnswers.isEmpty) {
+      return {
+        Dosha.vata: 0,
+        Dosha.pitta: 0,
+        Dosha.kapha: 0,
+      };
+    }
+
+    var vata = 0;
+    var pitta = 0;
+    var kapha = 0;
+
+    for (final optionIndex in faceAnswers.values) {
+      switch (optionIndex) {
+        case 0:
+          vata += 1;
+          break;
+        case 1:
+          pitta += 1;
+          break;
+        case 2:
+          kapha += 1;
+          break;
+      }
+    }
+
+    final total = faceAnswers.length.toDouble();
+    return {
+      Dosha.vata: vata / total,
+      Dosha.pitta: pitta / total,
+      Dosha.kapha: kapha / total,
+    };
+  }
+
+  Map<Dosha, double> _distributionFromQuizAnswers() {
     var vataScore = 0;
     var pittaScore = 0;
     var kaphaScore = 0;
@@ -313,22 +452,19 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
       kaphaScore += option.scores[Dosha.kapha] ?? 0;
     }
 
-    final resultMap = {
-      Dosha.vata: vataScore,
-      Dosha.pitta: pittaScore,
-      Dosha.kapha: kaphaScore,
+    final total = (vataScore + pittaScore + kaphaScore).toDouble();
+    if (total == 0) {
+      return {
+        Dosha.vata: 0,
+        Dosha.pitta: 0,
+        Dosha.kapha: 0,
+      };
+    }
+
+    return {
+      Dosha.vata: vataScore / total,
+      Dosha.pitta: pittaScore / total,
+      Dosha.kapha: kaphaScore / total,
     };
-
-    final dominant = resultMap.entries.reduce(
-      (current, next) => current.value >= next.value ? current : next,
-    );
-
-    return PrakritiAssessmentResult(
-      vataScore: vataScore,
-      pittaScore: pittaScore,
-      kaphaScore: kaphaScore,
-      finalPrakriti: dominant.key.label,
-      createdAt: DateTime.now(),
-    );
   }
 }

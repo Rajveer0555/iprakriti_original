@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
+import '../providers/face_feature_provider.dart';
 import '../providers/question_provider.dart';
-import 'questionnaire_screen.dart';
+import 'face_feature_screen.dart';
 import 'widgets/assessment_step_badge.dart';
 
 class FaceScanScreen extends ConsumerStatefulWidget {
@@ -214,10 +215,11 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
   }
 
   void _continueToQuestions() {
+    ref.read(faceFeatureProvider.notifier).reset();
     ref.read(questionnaireProvider.notifier).reset();
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => const QuestionnaireScreen(),
+        builder: (_) => const FaceFeatureScreen(),
       ),
     );
   }

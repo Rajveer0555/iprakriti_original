@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme.dart';
 import '../models/question_model.dart';
 import '../providers/auth_provider.dart';
+import '../providers/face_feature_provider.dart';
 import '../providers/question_provider.dart';
 import 'dashboard_screen.dart';
 import 'processing_screen.dart';
@@ -38,7 +39,10 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
 
     setState(() => _isSaving = true);
     try {
-      final result = controller.calculateResult();
+      final faceFeatureAnswers = ref.read(faceFeatureProvider).selectedAnswers;
+      final result = controller.calculateResult(
+        faceFeatureAnswers: faceFeatureAnswers,
+      );
       final userId = ref.read(authControllerProvider).session?.user.id;
       if (userId != null) {
         await ref.read(resultServiceProvider).saveResult(
@@ -53,6 +57,7 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
       }
 
       controller.reset();
+      ref.read(faceFeatureProvider.notifier).reset();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => ProcessingScreen(result: result),
@@ -74,8 +79,11 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
     final state = ref.watch(questionnaireProvider);
     final question = state.currentQuestion;
     final screenWidth = MediaQuery.of(context).size.width;
-    final progress = state.progress.clamp(0.0, 1.0);
+    final lifestyleCount = state.questions.length;
+    final lifestyleIndex = state.currentIndex;
+    final progress = state.progress;
     final completedPercent = (progress * 100).round();
+    final remaining = lifestyleCount - lifestyleIndex - 1;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -110,8 +118,8 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
                       ),
                     ),
                     const AssessmentStepBadge(
-                      step: 3,
-                      totalSteps: 3,
+                      step: 4,
+                      totalSteps: 4,
                       backgroundColor: Color(0xFFF6F6F6),
                       activeColor: AppColors.primary,
                       inactiveColor: Color(0xFFD8D8D8),
@@ -154,7 +162,7 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
                         ),
                         const Spacer(),
                         Text(
-                          '${state.questions.length - state.currentIndex - 1} remaining',
+                          '$remaining remaining',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: AppColors.textSecondary,
                               ),
@@ -168,7 +176,7 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Text(
-                  'Question ${state.currentIndex + 1} of ${state.questions.length}',
+                  'Question ${lifestyleIndex + 1} of $lifestyleCount',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
