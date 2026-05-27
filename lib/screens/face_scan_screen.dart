@@ -269,7 +269,7 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
                           ),
                         ),
                       ),
-                      const AssessmentStepBadge(step: 2, totalSteps: 3),
+                      const AssessmentStepBadge(step: 2, totalSteps: 4),
                     ],
                   ),
                   const Spacer(),

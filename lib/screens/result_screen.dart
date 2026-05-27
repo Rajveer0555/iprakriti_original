@@ -17,28 +17,28 @@ class ResultScreen extends StatelessWidget {
 
   static const Map<String, String> _suggestions = {
     'Vata':
-        'As a Vata-dominant individual, you possess creative energy, quick thinking, and adaptability. Your secondary influences help bring steadiness and perspective when you follow nourishing routines.',
+        'As a Vata-dominant individual, you are guided by movement, creativity, and sensitivity. You often think quickly, adapt fast, and bring originality into the way you work and relate to others.\n\nYou tend to feel best with warmth, rhythm, nourishment, and enough rest to balance your naturally light and changeable energy. Grounding routines can help your strongest qualities stay clear and sustainable.',
     'Pitta':
-        'As a Pitta-dominant individual, you possess strong digestive fire, sharp intellect, and natural leadership qualities. You thrive on challenges and have excellent focus.\n\nYour secondary Vata influence brings creativity and enthusiasm to your personality, while a balanced Kapha provides stability.',
+        'As a Pitta-dominant individual, you are shaped by focus, drive, and transformative energy. You often bring clarity, leadership, and strong decision-making to the people and goals around you.\n\nYou tend to thrive when intensity is balanced with cooling habits, steady meals, and moments of pause. When that balance is in place, your confidence and discipline become powerful assets without tipping into overexertion.',
     'Kapha':
-        'As a Kapha-dominant individual, you carry grounded strength, patience, and emotional steadiness. Your constitution benefits from movement, lightness, and inspiring daily structure.',
+        'As a Kapha-dominant individual, you are supported by steadiness, resilience, and emotional calm. You often offer patience, loyalty, and dependable energy, making you a stabilizing presence for yourself and others.\n\nYou tend to feel brightest when daily life includes movement, stimulation, and variety. Lightness in routine helps your natural strength stay energized rather than heavy or stagnant.',
   };
 
   static const Map<String, List<String>> _characteristics = {
-    'Pitta': [
-      'Strong metabolism and digestion',
-      'Goal-oriented and ambitious',
-      'Warm body temperature',
-    ],
     'Vata': [
-      'Creative and fast-moving mind',
-      'Energetic and expressive nature',
-      'Benefits from grounding routines',
+      'Creative, curious, and quick to respond',
+      'Expressive energy with a fast-moving mind',
+      'Benefits from grounding, warmth, and consistency',
+    ],
+    'Pitta': [
+      'Strong focus, motivation, and follow-through',
+      'Sharp digestion and decisive leadership energy',
+      'Benefits from cooling habits and balanced intensity',
     ],
     'Kapha': [
-      'Steady energy and endurance',
-      'Calm, loyal, and compassionate',
-      'Naturally stable body frame',
+      'Steady endurance and dependable energy',
+      'Calm, loyal, and naturally supportive nature',
+      'Benefits from stimulation, movement, and lightness',
     ],
   };
 
@@ -46,12 +46,12 @@ class ResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final dominant = result.finalPrakriti;
     final insight = _suggestions[dominant] ??
-        'Maintain a balanced daily routine and choose foods and activities that keep your energy steady.';
+        'Your prakruti shows a meaningful blend of strengths. Support it with consistent routines, balanced nourishment, and habits that keep your energy steady and clear.';
     final characteristics = _characteristics[dominant] ??
         const [
-          'Balanced wellness foundation',
-          'Responsive to routine and nourishment',
-          'Benefits from mindful daily habits',
+          'A mixed constitution with complementary strengths',
+          'Responsive to steady routine and mindful nourishment',
+          'Benefits from habits that maintain balance across energy types',
         ];
 
     return Scaffold(

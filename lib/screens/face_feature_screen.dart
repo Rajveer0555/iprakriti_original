@@ -20,6 +20,7 @@ class _FaceFeatureScreenState extends ConsumerState<FaceFeatureScreen> {
     final state = ref.read(faceFeatureProvider);
 
     if (state.isFirstQuestion) {
+      controller.reset();
       Navigator.of(context).pop();
       return;
     }
@@ -59,7 +60,7 @@ class _FaceFeatureScreenState extends ConsumerState<FaceFeatureScreen> {
     final remaining = totalQuestions - state.currentIndex - 1;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F4EA),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(0, 10, 0, 24),
@@ -201,12 +202,20 @@ class _FaceFeatureScreenState extends ConsumerState<FaceFeatureScreen> {
                   child: ElevatedButton(
                     onPressed: () => _goNext(state),
                     style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 56),
                       backgroundColor: selectedOptionIndex == null
                           ? const Color(0xFFD5CFBF)
                           : AppColors.primary,
                       foregroundColor: selectedOptionIndex == null
                           ? AppColors.textSecondary
                           : Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     child: Text(
                       state.isLastQuestion
@@ -327,7 +336,12 @@ class _FeatureVisualChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final spec = _featureVisuals[questionId]![optionIndex];
+    final specs = _featureVisuals[questionId];
+    if (specs == null || optionIndex >= specs.length) {
+      return const SizedBox.shrink();
+    }
+    final spec = specs[optionIndex];
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       width: 84,

@@ -36,7 +36,7 @@ class AssessmentIntroScreen extends StatelessWidget {
                   ),
                   const AssessmentStepBadge(
                     step: 1,
-                    totalSteps: 3,
+                    totalSteps: 4,
                     backgroundColor: Color(0xFFF6F6F6),
                     activeColor: AppColors.primary,
                     inactiveColor: Color(0xFFD8D8D8),
@@ -90,7 +90,7 @@ class AssessmentIntroScreen extends StatelessWidget {
               const SizedBox(height: 10),
               Center(
                 child: Text(
-                  'Step 1 of 3',
+                  'Step 1 of 4',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: const Color(0xFF62706A),
                   ),
@@ -185,6 +185,8 @@ class _AssessmentPager extends StatelessWidget {
             borderRadius: BorderRadius.circular(999),
           ),
         ),
+        const SizedBox(width: 6),
+        _pagerDot(),
         const SizedBox(width: 6),
         _pagerDot(),
         const SizedBox(width: 6),
