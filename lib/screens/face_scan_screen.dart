@@ -188,6 +188,10 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
         _isCapturing = false;
         _isFaceDetected = true;
       });
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+      if (!mounted) {
+        return;
+      }
       _continueToQuestions();
     } catch (error) {
       if (!mounted) {
@@ -294,27 +298,38 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
                           ),
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                    _isPermissionDenied
-                        ? 'Camera permission is required to scan your face'
-                        : 'Position your face inside the frame',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _cameraError != null
-                        ? _friendlyCameraError(_cameraError!)
-                        : 'Ensure good lighting and remove glasses.',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(0xD6FFFFFF),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 180),
+                    opacity: _showNoFaceGuidance ? 0 : 1,
+                    child: IgnorePointer(
+                      ignoring: _showNoFaceGuidance,
+                      child: Column(
+                        children: [
+                          Text(
+                            _isPermissionDenied
+                                ? 'Camera permission is required to scan your face'
+                                : 'Position your face inside the frame',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _cameraError != null
+                                ? _friendlyCameraError(_cameraError!)
+                                : 'Ensure good lighting and remove glasses.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color(0xD6FFFFFF),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const Spacer(),
