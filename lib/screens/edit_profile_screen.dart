@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/app_snackbar.dart';
 import '../core/theme.dart';
 import '../models/user_profile_model.dart';
 import '../providers/auth_provider.dart';
@@ -316,9 +317,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
+      showAppSnackBar(
         context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
+        message: error.toString(),
+        tone: AppSnackBarTone.error,
+      );
     }
   }
 
@@ -445,9 +448,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+      showAppSnackBar(
+        context,
+        message: message,
+        tone: AppSnackBarTone.warning,
+      );
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/app_snackbar.dart';
 import '../core/theme.dart';
 import '../models/question_model.dart';
 import '../providers/auth_provider.dart';
@@ -26,8 +27,10 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
     final hasSelection = state.selectedOptionIndex != null;
 
     if (!hasSelection) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an option to continue.')),
+      showAppSnackBar(
+        context,
+        message: 'Please select an option to continue.',
+        tone: AppSnackBarTone.warning,
       );
       return;
     }
@@ -64,8 +67,10 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
         ),
       );
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
+      showAppSnackBar(
+        context,
+        message: error.toString(),
+        tone: AppSnackBarTone.error,
       );
     } finally {
       if (mounted) {

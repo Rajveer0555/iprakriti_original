@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iprakriti/core/theme.dart';
 import 'package:iprakriti/services/result_service.dart';
 
+import 'assessment_intro_screen.dart';
 import 'dashboard_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -108,9 +109,9 @@ class _ProfileAvatar extends StatelessWidget {
 }
 
 class _AssessmentHero extends StatelessWidget {
-  const _AssessmentHero({required this.onPressed});
+  const _AssessmentHero({this.onPressed});
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +150,7 @@ class _AssessmentHero extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: onPressed,
+              onPressed: onPressed ?? () => _openAssessment(context),
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(0, 56),
                 backgroundColor: AppColors.primary,
@@ -162,6 +163,14 @@ class _AssessmentHero extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  static void _openAssessment(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const AssessmentIntroScreen(),
       ),
     );
   }

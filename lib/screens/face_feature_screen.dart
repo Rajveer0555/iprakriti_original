@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/app_snackbar.dart';
 import '../core/theme.dart';
 import '../models/question_model.dart';
 import '../providers/face_feature_provider.dart';
@@ -32,8 +33,10 @@ class _FaceFeatureScreenState extends ConsumerState<FaceFeatureScreen> {
     final controller = ref.read(faceFeatureProvider.notifier);
     final selectedOption = state.selectedOptionIndex;
     if (selectedOption == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please choose one option to continue.')),
+      showAppSnackBar(
+        context,
+        message: 'Please choose one option to continue.',
+        tone: AppSnackBarTone.warning,
       );
       return;
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iprakriti/models/question_model.dart';
 
+import '../core/app_snackbar.dart';
 import '../core/theme.dart';
 import '../models/user_profile_model.dart';
 import '../providers/auth_provider.dart';
@@ -679,8 +680,12 @@ class _ProfileTab extends ConsumerWidget {
                 if (!context.mounted) {
                   return;
                 }
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(result.message)),
+                showAppSnackBar(
+                  context,
+                  message: result.message,
+                  tone: result.photoUploadSucceeded
+                      ? AppSnackBarTone.success
+                      : AppSnackBarTone.warning,
                 );
               }
             },
@@ -2080,16 +2085,20 @@ class _DeleteReportButton extends ConsumerWidget {
           if (!context.mounted) {
             return;
           }
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Report deleted successfully.')),
+          showAppSnackBar(
+            context,
+            message: 'Report deleted successfully.',
+            tone: AppSnackBarTone.success,
           );
         } catch (error) {
           if (!context.mounted) {
             return;
           }
-          ScaffoldMessenger.of(
+          showAppSnackBar(
             context,
-          ).showSnackBar(SnackBar(content: Text(error.toString())));
+            message: error.toString(),
+            tone: AppSnackBarTone.error,
+          );
         }
       },
       icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFF9A9A9A)),

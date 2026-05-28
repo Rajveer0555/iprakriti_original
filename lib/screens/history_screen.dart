@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme.dart';
+import '../models/question_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/result_service.dart';
+import 'detailed_report_screen.dart';
 
 final historyProvider =
     FutureProvider.autoDispose<List<PrakritiHistoryEntry>>((ref) async {
@@ -45,54 +47,74 @@ class HistoryScreen extends ConsumerWidget {
             separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
             itemBuilder: (context, index) {
               final item = items[index];
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: const BoxDecoration(
-                              color: AppColors.surfaceMuted,
-                              shape: BoxShape.circle,
+              final reconstructedResult = PrakritiAssessmentResult(
+                vataScore: item.vataScore,
+                pittaScore: item.pittaScore,
+                kaphaScore: item.kaphaScore,
+                finalPrakriti: item.finalPrakriti,
+                createdAt: item.createdAt,
+              );
+
+              return InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) =>
+                          DetailedReportScreen(result: reconstructedResult),
+                    ),
+                  );
+                },
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: const BoxDecoration(
+                                color: AppColors.surfaceMuted,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.spa_rounded,
+                                color: AppColors.primary,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.spa_rounded,
-                              color: AppColors.primary,
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.finalPrakriti,
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  Text(
+                                    _formatDate(item.createdAt),
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.finalPrakriti,
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                ),
-                                Text(
-                                  _formatDate(item.createdAt),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _ScorePill(label: 'Vata', value: item.vataScore),
-                          _ScorePill(label: 'Pitta', value: item.pittaScore),
-                          _ScorePill(label: 'Kapha', value: item.kaphaScore),
-                        ],
-                      ),
-                    ],
+                            const Icon(Icons.chevron_right_rounded),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _ScorePill(label: 'Vata', value: item.vataScore),
+                            _ScorePill(label: 'Pitta', value: item.pittaScore),
+                            _ScorePill(label: 'Kapha', value: item.kaphaScore),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

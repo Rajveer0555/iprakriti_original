@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../core/app_snackbar.dart';
 import '../core/theme.dart';
 import '../models/question_model.dart';
 
@@ -243,10 +244,10 @@ class _ShareReportScreenState extends State<ShareReportScreen> {
                       icon: Icons.chat_outlined,
                       title: 'Share via WhatsApp',
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('WhatsApp sharing will be added next.'),
-                          ),
+                        showAppSnackBar(
+                          context,
+                          message: 'WhatsApp sharing will be added next.',
+                          tone: AppSnackBarTone.info,
                         );
                       },
                     ),
@@ -256,10 +257,10 @@ class _ShareReportScreenState extends State<ShareReportScreen> {
                       icon: Icons.share_outlined,
                       title: 'Share via Other Apps',
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('System share will be added next.'),
-                          ),
+                        showAppSnackBar(
+                          context,
+                          message: 'System share will be added next.',
+                          tone: AppSnackBarTone.info,
                         );
                       },
                     ),
@@ -309,21 +310,21 @@ class _ShareReportScreenState extends State<ShareReportScreen> {
         return;
       }
 
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('PDF saved to ${file.path}')),
-        );
+      showAppSnackBar(
+        context,
+        message: 'PDF saved to ${file.path}',
+        tone: AppSnackBarTone.success,
+      );
       await OpenFilex.open(file.path);
     } catch (error) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('Unable to generate PDF: $error')),
-        );
+      showAppSnackBar(
+        context,
+        message: 'Unable to generate PDF: $error',
+        tone: AppSnackBarTone.error,
+      );
     } finally {
       if (mounted) {
         setState(() => _isExporting = false);

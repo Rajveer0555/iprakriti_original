@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/app_snackbar.dart';
 import '../providers/auth_provider.dart';
 import 'dashboard_screen.dart';
 import 'informative_screen.dart';
@@ -46,9 +47,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       final errorMessage = next.errorMessage;
       if (errorMessage != null) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(errorMessage)));
+        showAppSnackBar(
+          context,
+          message: errorMessage,
+          tone: AppSnackBarTone.error,
+        );
         ref.read(authControllerProvider.notifier).clearError();
       }
     });
@@ -389,15 +392,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted || !success) {
         return;
       }
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Account created. If email verification is enabled, please check your inbox before signing in.',
-            ),
-          ),
-        );
+      showAppSnackBar(
+        context,
+        message:
+            'Account created. If email verification is enabled, please check your inbox before signing in.',
+        tone: AppSnackBarTone.success,
+      );
     } else {
       await notifier.signInWithPassword(
         email: _emailController.text.trim(),

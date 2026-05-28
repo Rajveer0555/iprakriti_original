@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -24,9 +22,10 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
   CameraController? _cameraController;
   FaceDetector? _faceDetector;
   bool _isInitializing = true;
+  bool _isCapturing = false;
   bool _isPermissionDenied = false;
-  bool _isProcessingFrame = false;
   bool _isFaceDetected = false;
+  bool _showNoFaceGuidance = false;
   String? _cameraError;
 
   @override
@@ -71,6 +70,7 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
       _isInitializing = true;
       _cameraError = null;
       _isPermissionDenied = false;
+      _showNoFaceGuidance = false;
     });
 
     try {
@@ -91,10 +91,6 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
         selectedCamera,
         ResolutionPreset.medium,
         enableAudio: false,
-        imageFormatGroup:
-            Platform.isAndroid
-                ? ImageFormatGroup.nv21
-                : ImageFormatGroup.bgra8888,
       );
 
       await controller.initialize();
@@ -109,8 +105,6 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
       );
 
       _cameraController = controller;
-
-      await controller.startImageStream(_processCameraImage);
 
       if (!mounted) {
         return;
@@ -142,78 +136,6 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
     }
   }
 
-  Future<void> _processCameraImage(CameraImage image) async {
-    if (_isProcessingFrame || _faceDetector == null || _cameraController == null) {
-      return;
-    }
-
-    final inputImage = _inputImageFromCameraImage(image, _cameraController!);
-    if (inputImage == null) {
-      return;
-    }
-
-    _isProcessingFrame = true;
-
-    try {
-      final faces = await _faceDetector!.processImage(inputImage);
-      if (!mounted) {
-        return;
-      }
-
-      final hasFace = faces.isNotEmpty;
-      if (hasFace != _isFaceDetected) {
-        setState(() {
-          _isFaceDetected = hasFace;
-        });
-      }
-    } catch (_) {
-      if (mounted && _isFaceDetected) {
-        setState(() {
-          _isFaceDetected = false;
-        });
-      }
-    } finally {
-      _isProcessingFrame = false;
-    }
-  }
-
-  InputImage? _inputImageFromCameraImage(
-    CameraImage image,
-    CameraController controller,
-  ) {
-    final camera = controller.description;
-    final rotation =
-        InputImageRotationValue.fromRawValue(camera.sensorOrientation);
-    if (rotation == null) {
-      return null;
-    }
-
-    final format =
-        InputImageFormatValue.fromRawValue(image.format.raw) ??
-        (Platform.isAndroid
-            ? InputImageFormat.nv21
-            : InputImageFormat.bgra8888);
-
-    if (Platform.isAndroid && image.planes.length != 1) {
-      return null;
-    }
-
-    final bytes = WriteBuffer();
-    for (final plane in image.planes) {
-      bytes.putUint8List(plane.bytes);
-    }
-
-    return InputImage.fromBytes(
-      bytes: bytes.done().buffer.asUint8List(),
-      metadata: InputImageMetadata(
-        size: Size(image.width.toDouble(), image.height.toDouble()),
-        rotation: rotation,
-        format: format,
-        bytesPerRow: image.planes.first.bytesPerRow,
-      ),
-    );
-  }
-
   void _continueToQuestions() {
     ref.read(faceFeatureProvider.notifier).reset();
     ref.read(questionnaireProvider.notifier).reset();
@@ -222,6 +144,61 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
         builder: (_) => const FaceFeatureScreen(),
       ),
     );
+  }
+
+  void _handleCaptureTap() {
+    if (_isInitializing || _isCapturing || _cameraController == null) {
+      return;
+    }
+    _captureAndDetectFace();
+  }
+
+  Future<void> _captureAndDetectFace() async {
+    final controller = _cameraController;
+    final detector = _faceDetector;
+    if (controller == null || detector == null) {
+      return;
+    }
+
+    setState(() {
+      _isCapturing = true;
+      _showNoFaceGuidance = false;
+      _cameraError = null;
+    });
+
+    try {
+      final image = await controller.takePicture();
+      final inputImage = InputImage.fromFilePath(image.path);
+      final faces = await detector.processImage(inputImage);
+
+      if (!mounted) {
+        return;
+      }
+
+      if (faces.isEmpty) {
+        setState(() {
+          _isCapturing = false;
+          _isFaceDetected = false;
+          _showNoFaceGuidance = true;
+        });
+        return;
+      }
+
+      setState(() {
+        _isCapturing = false;
+        _isFaceDetected = true;
+      });
+      _continueToQuestions();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isCapturing = false;
+        _isFaceDetected = false;
+        _cameraError = 'We could not scan your face. Please try again.';
+      });
+    }
   }
 
   @override
@@ -235,15 +212,6 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
             _buildCameraPreview()
           else
             Container(color: const Color(0xFF131313)),
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0x880E120F), Color(0xA6111513)],
-              ),
-            ),
-          ),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
@@ -279,18 +247,51 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
                     child: _FaceScanFrame(isDetected: _isFaceDetected),
                   ),
                   const SizedBox(height: 34),
-                  AnimatedOpacity(
-                    duration: const Duration(milliseconds: 180),
-                    opacity: _isFaceDetected ? 1 : 0,
-                    child: const Text(
-                      'Face detected. Hold still...',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    child: _isCapturing
+                        ? const Text(
+                            'Scanning your face...',
+                            key: ValueKey('scan_processing'),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          )
+                        : _isFaceDetected
+                        ? const Text(
+                            'Face detected. Hold still...',
+                            key: ValueKey('scan_detected'),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          )
+                        : _showNoFaceGuidance
+                        ? const Text(
+                            'No face detected. Move to better lighting and center your face.',
+                            key: ValueKey('scan_guidance'),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color(0xFFFFD8A8),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          )
+                        : const Text(
+                            'Align your face inside the frame',
+                            key: ValueKey('scan_default'),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color(0xE6FFFFFF),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                   ),
                   const SizedBox(height: 24),
                   Text(
@@ -318,12 +319,14 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
                   ),
                   const Spacer(),
                   GestureDetector(
-                    onTap:
-                        (_isInitializing || _cameraController == null)
-                            ? null
-                            : _continueToQuestions,
+                    onTap: _handleCaptureTap,
                     child: Opacity(
-                      opacity: (_isInitializing || _cameraController == null) ? 0.55 : 1,
+                      opacity:
+                          (_isInitializing ||
+                                  _cameraController == null ||
+                                  _isCapturing)
+                              ? 0.55
+                              : 1,
                       child: Container(
                         width: 78,
                         height: 78,
@@ -370,6 +373,13 @@ class _FaceScanScreenState extends ConsumerState<FaceScanScreen>
           if (_isInitializing)
             const ColoredBox(
               color: Color(0x55000000),
+              child: Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
+          if (_isCapturing)
+            const ColoredBox(
+              color: Color(0x33000000),
               child: Center(
                 child: CircularProgressIndicator(color: Colors.white),
               ),

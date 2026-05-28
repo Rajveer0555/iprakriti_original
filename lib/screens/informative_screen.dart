@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/app_snackbar.dart';
 import '../core/theme.dart';
 import '../providers/auth_provider.dart';
 import 'dashboard_screen.dart';
@@ -78,9 +79,11 @@ class _InformativeScreenState extends ConsumerState<InformativeScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    showAppSnackBar(
+      context,
+      message: message,
+      tone: AppSnackBarTone.error,
+    );
   }
 
   @override
