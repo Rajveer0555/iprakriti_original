@@ -30,6 +30,8 @@
 	<string>Use the camera to scan your face during the Prakruti assessment.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone access is required by the camera plugin while preparing the scanner.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>IPrakriti uses notifications for wellness tips, reassessment reminders, and product updates you enable in settings.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

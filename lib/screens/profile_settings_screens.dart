@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/notification_service.dart';
+
 class AboutAppScreen extends StatelessWidget {
   const AboutAppScreen({super.key});
 
@@ -44,13 +46,17 @@ class NotificationPreferencesScreen extends StatefulWidget {
 
 class _NotificationPreferencesScreenState
     extends State<NotificationPreferencesScreen> {
-  static const _dailyHealthKey = 'notification_daily_health_tip';
-  static const _reassessmentKey = 'notification_reassessment_reminder';
-  static const _productUpdatesKey = 'notification_product_updates';
+  static const _dailyHealthKey = NotificationPreferenceKeys.dailyHealthTip;
+  static const _reassessmentKey =
+      NotificationPreferenceKeys.reassessmentReminder;
+  static const _productUpdatesKey = NotificationPreferenceKeys.productUpdates;
 
   bool _dailyHealthTips = true;
   bool _reassessmentReminder = true;
   bool _productUpdates = true;
+  TimeOfDay _dailyHealthTime = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay _reassessmentTime = const TimeOfDay(hour: 10, minute: 0);
+  TimeOfDay _productUpdatesTime = const TimeOfDay(hour: 11, minute: 0);
   bool _isLoaded = false;
 
   @override
@@ -94,6 +100,13 @@ class _NotificationPreferencesScreenState
                               title: 'Daily Health Tip Reminder',
                               subtitle: 'Receive wellness tips everyday',
                               value: _dailyHealthTips,
+                              timeLabel: _formatTime(_dailyHealthTime),
+                              onTimeTap:
+                                  () => _pickReminderTime(
+                                    reminderKey: _dailyHealthKey,
+                                    currentTime: _dailyHealthTime,
+                                    update: (value) => _dailyHealthTime = value,
+                                  ),
                               onChanged:
                                   (value) => _savePreference(
                                     key: _dailyHealthKey,
@@ -107,6 +120,14 @@ class _NotificationPreferencesScreenState
                               title: 'Reassessment Reminder',
                               subtitle: 'Task change in your Prakruti',
                               value: _reassessmentReminder,
+                              timeLabel: _formatTime(_reassessmentTime),
+                              onTimeTap:
+                                  () => _pickReminderTime(
+                                    reminderKey: _reassessmentKey,
+                                    currentTime: _reassessmentTime,
+                                    update:
+                                        (value) => _reassessmentTime = value,
+                                  ),
                               onChanged:
                                   (value) => _savePreference(
                                     key: _reassessmentKey,
@@ -120,6 +141,13 @@ class _NotificationPreferencesScreenState
                               title: 'Product Update & News',
                               subtitle: 'Get notified about new features',
                               value: _productUpdates,
+                              timeLabel: _formatTime(_productUpdatesTime),
+                              onTimeTap:
+                                  () => _pickReminderTime(
+                                    reminderKey: _productUpdatesKey,
+                                    currentTime: _productUpdatesTime,
+                                    update: (value) => _productUpdatesTime = value,
+                                  ),
                               onChanged:
                                   (value) => _savePreference(
                                     key: _productUpdatesKey,
@@ -150,6 +178,24 @@ class _NotificationPreferencesScreenState
       _dailyHealthTips = prefs.getBool(_dailyHealthKey) ?? true;
       _reassessmentReminder = prefs.getBool(_reassessmentKey) ?? true;
       _productUpdates = prefs.getBool(_productUpdatesKey) ?? true;
+      _dailyHealthTime = _toTimeOfDay(
+        NotificationService.instance.getStoredTime(
+          prefs: prefs,
+          reminderKey: _dailyHealthKey,
+        ),
+      );
+      _reassessmentTime = _toTimeOfDay(
+        NotificationService.instance.getStoredTime(
+          prefs: prefs,
+          reminderKey: _reassessmentKey,
+        ),
+      );
+      _productUpdatesTime = _toTimeOfDay(
+        NotificationService.instance.getStoredTime(
+          prefs: prefs,
+          reminderKey: _productUpdatesKey,
+        ),
+      );
       _isLoaded = true;
     });
   }
@@ -160,8 +206,36 @@ class _NotificationPreferencesScreenState
     required VoidCallback update,
   }) async {
     setState(update);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(key, value);
+    await NotificationService.instance.updatePreference(key: key, value: value);
+  }
+
+  Future<void> _pickReminderTime({
+    required String reminderKey,
+    required TimeOfDay currentTime,
+    required ValueChanged<TimeOfDay> update,
+  }) async {
+    final selectedTime = await showTimePicker(
+      context: context,
+      initialTime: currentTime,
+    );
+    if (selectedTime == null || !mounted) {
+      return;
+    }
+
+    setState(() => update(selectedTime));
+    await NotificationService.instance.updateReminderTime(
+      reminderKey: reminderKey,
+      hour: selectedTime.hour,
+      minute: selectedTime.minute,
+    );
+  }
+
+  TimeOfDay _toTimeOfDay(TimeOfDayValue value) {
+    return TimeOfDay(hour: value.hour, minute: value.minute);
+  }
+
+  String _formatTime(TimeOfDay value) {
+    return MaterialLocalizations.of(context).formatTimeOfDay(value);
   }
 }
 
@@ -314,7 +388,7 @@ class _PrivacyPolicyContent extends StatelessWidget {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _DocumentText('Effective Date: [Add Date]', isLead: true),
+        _DocumentText('Effective Date: 22-12-2026', isLead: true),
         SizedBox(height: 18),
         _DocumentText('App Name :- IPrakriti', isLead: true),
         _Rule(),
@@ -382,7 +456,7 @@ class _TermsConditionsContent extends StatelessWidget {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _DocumentText('Effective Date: [Add Date]', isLead: true),
+        _DocumentText('Effective Date: 22-12-2026', isLead: true),
         SizedBox(height: 18),
         _DocumentText('App Name :- IPrakriti', isLead: true),
         _Rule(),
@@ -558,6 +632,8 @@ class _NotificationPreferenceRow extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.value,
+    required this.timeLabel,
+    required this.onTimeTap,
     required this.onChanged,
   });
 
@@ -565,72 +641,110 @@ class _NotificationPreferenceRow extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool value;
+  final String timeLabel;
+  final VoidCallback onTimeTap;
   final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 72,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 13, 14, 13),
-        child: Row(
-          children: [
-            Container(
-              width: 47,
-              height: 47,
-              decoration: const BoxDecoration(
-                color: Color(0xFFEAF9E7),
-                shape: BoxShape.circle,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 13, 14, 13),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 47,
+                height: 47,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEAF9E7),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: const Color(0xFF75C765), size: 22),
               ),
-              child: Icon(icon, color: const Color(0xFF75C765), size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontSize: 14,
-                      height: 1.15,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.black,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontSize: 14,
+                        height: 1.15,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontSize: 9,
-                      height: 1,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.black,
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 9,
+                        height: 1,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black,
+                      ),
                     ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Transform.scale(
+                scale: 0.8,
+                child: Switch(
+                  value: value,
+                  onChanged: onChanged,
+                  activeColor: Colors.white,
+                  activeTrackColor: const Color(0xFF1E6B2B),
+                  inactiveThumbColor: Colors.white,
+                  inactiveTrackColor: const Color(0xFFBFC8BD),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const SizedBox(width: 61),
+              Text(
+                'Reminder time',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontSize: 11,
+                  color: const Color(0xFF5E655D),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              OutlinedButton.icon(
+                onPressed: onTimeTap,
+                icon: const Icon(Icons.schedule_rounded, size: 16),
+                label: Text(timeLabel),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF1E6B2B),
+                  side: const BorderSide(color: Color(0xFFB7C9B6)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
                   ),
-                ],
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Transform.scale(
-              scale: 0.8,
-              child: Switch(
-                value: value,
-                onChanged: onChanged,
-                activeColor: Colors.white,
-                activeTrackColor: const Color(0xFF1E6B2B),
-                inactiveThumbColor: Colors.white,
-                inactiveTrackColor: const Color(0xFFBFC8BD),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }

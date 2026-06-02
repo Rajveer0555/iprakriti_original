@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -62,6 +61,43 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFBFA),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(24, 10, 24, 18),
+        child: SizedBox(
+          width: double.infinity,
+          height: 55,
+          child: ElevatedButton(
+            onPressed: _isSaving ? null : _saveChanges,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF16641F),
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: const Color(0xFF8BA98E),
+              elevation: 4,
+              shadowColor: const Color(0x2216641F),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            child:
+                _isSaving
+                    ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: Colors.white,
+                      ),
+                    )
+                    : const Text(
+                      'Save Changes',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: profileAsync.when(
           data: (profile) {
@@ -176,6 +212,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       _ProfileTextField(
                         controller: _heightController,
                         hintText: 'Height',
+                        suffixText: 'cm',
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
@@ -192,6 +229,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       _ProfileTextField(
                         controller: _weightController,
                         hintText: 'Weight',
+                        suffixText: 'kg',
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
@@ -217,40 +255,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     ),
                   ],
                   const SizedBox(height: 108),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed: _isSaving ? null : _saveChanges,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF16641F),
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: const Color(0xFF8BA98E),
-                        elevation: 4,
-                        shadowColor: const Color(0x2216641F),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                      child:
-                          _isSaving
-                              ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.4,
-                                  color: Colors.white,
-                                ),
-                              )
-                              : const Text(
-                                'Save Changes',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -448,11 +452,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     if (!mounted) {
       return;
     }
-      showAppSnackBar(
-        context,
-        message: message,
-        tone: AppSnackBarTone.warning,
-      );
+    showAppSnackBar(context, message: message, tone: AppSnackBarTone.warning);
   }
 }
 
@@ -541,6 +541,7 @@ class _ProfileTextField extends StatelessWidget {
     this.keyboardType,
     this.inputFormatters,
     this.validator,
+    this.suffixText,
   });
 
   final TextEditingController controller;
@@ -548,6 +549,7 @@ class _ProfileTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final FormFieldValidator<String>? validator;
+  final String? suffixText;
 
   @override
   Widget build(BuildContext context) {
@@ -565,7 +567,7 @@ class _ProfileTextField extends StatelessWidget {
             fontWeight: FontWeight.w400,
             color: Color(0xFF1E1E1E),
           ),
-          decoration: _fieldDecoration(hintText),
+          decoration: _fieldDecoration(hintText, suffixText: suffixText),
         ),
       ),
     );
@@ -617,7 +619,7 @@ final BoxDecoration _fieldShadowDecoration = BoxDecoration(
   ],
 );
 
-InputDecoration _fieldDecoration(String hintText) {
+InputDecoration _fieldDecoration(String hintText, {String? suffixText}) {
   return InputDecoration(
     hintText: hintText,
     hintStyle: const TextStyle(
@@ -625,6 +627,12 @@ InputDecoration _fieldDecoration(String hintText) {
       fontSize: 17,
       fontWeight: FontWeight.w400,
     ),
+    suffixText: suffixText,
+    suffixStyle: const TextStyle(
+      color: Color(0xFF696969),
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+     ),
     filled: true,
     fillColor: Colors.white,
     contentPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 17),

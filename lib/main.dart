@@ -12,6 +12,7 @@ import 'screens/informative_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart' as onboarding;
 import 'screens/splash_screen.dart';
+import 'services/notification_service.dart';
 
 const _supabaseUrl = String.fromEnvironment(
   'SUPABASE_URL',
@@ -37,6 +38,9 @@ Future<void> main() async {
       initializationError = error.toString();
     }
   }
+
+  await NotificationService.instance.initialize();
+  await NotificationService.instance.syncWithStoredPreferences();
 
   runApp(
     ProviderScope(
