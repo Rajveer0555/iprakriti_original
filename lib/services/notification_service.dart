@@ -133,15 +133,36 @@ class NotificationService {
     required bool productUpdates,
     required SharedPreferences prefs,
   }) async {
-    final hasPermission =
-        !(dailyHealthTips || reassessmentReminder || productUpdates) ||
-        await _requestPermissionsIfNeeded();
+    // BUG #2 FIX: The original expression used a complex short-circuit that
+    // was hard to reason about and evaluated permission only when at least one
+    // toggle was true, but the logic was expressed as:
+    //   !(a || b || c) || await _requestPermissionsIfNeeded()
+    // which is equivalent to:
+    //   (none enabled) → skip permission + cancel all
+    //   (any enabled)  → request permission
+    // That's actually logically correct but was confusing and error-prone.
+    // Rewritten below with explicit branching so intent is clear and auditable:
 
-    if (!hasPermission) {
+    final anyEnabled = dailyHealthTips || reassessmentReminder || productUpdates;
+
+    if (!anyEnabled) {
+      // No notifications wanted — cancel everything without asking for permission.
       await cancelAllScheduled();
       return;
     }
 
+    // At least one notification type is enabled — request permission now.
+    // This is called AFTER the app is rendered (see main.dart fix), so the
+    // Android Activity is alive and the system dialog can appear properly.
+    final hasPermission = await _requestPermissionsIfNeeded();
+
+    if (!hasPermission) {
+      // User denied — cancel any previously scheduled notifications.
+      await cancelAllScheduled();
+      return;
+    }
+
+    // Schedule / cancel each type individually based on user preference.
     if (dailyHealthTips) {
       final time = getStoredTime(
         prefs: prefs,
@@ -235,6 +256,7 @@ class NotificationService {
       sound: true,
     );
 
+    // null means the platform plugin is not present — treat as granted.
     return (androidGranted ?? true) &&
         (iosGranted ?? true) &&
         (macosGranted ?? true);

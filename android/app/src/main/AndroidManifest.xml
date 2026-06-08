@@ -6,6 +6,22 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
+    <!--
+        BUG #7 FIX: USE_EXACT_ALARM is required on Android 12+ (API 31+) for
+        flutter_local_notifications zonedSchedule() to fire reliably.
+        Without it, scheduled notifications are silently dropped on API 31+
+        devices because the OS refuses to set exact alarms without this
+        declaration.
+
+        USE_EXACT_ALARM (API 33+): granted automatically, no runtime prompt.
+        SCHEDULE_EXACT_ALARM (API 31-32): shown as a special app permission
+        that users can revoke in Settings → Apps → Special app access.
+
+        Declaring both covers all Android 12+ versions.
+    -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+
     <application
         android:label="IPrakriti"
         android:name="${applicationName}"

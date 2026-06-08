@@ -38,15 +38,30 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: [
-          // Background image
+          // BUG #5 FIX: Wrap AssetImage in an Image widget with errorBuilder
+          // so a missing or corrupt splash_bg.png never causes a black screen.
+          // The gradient below acts as the guaranteed visible fallback.
           Container(
             decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/splash_bg.png'),
-                fit: BoxFit.cover,
+              // Fallback gradient shown when the image fails to load.
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFE8F5E9), Color(0xFFF9FBF9)],
               ),
             ),
+          ),
+          // Background image — rendered on top of gradient; errors are silently
+          // swallowed so the gradient shows through instead of a black screen.
+          Image.asset(
+            'assets/splash_bg.png',
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              // Asset missing or corrupt — gradient fallback already visible.
+              return const SizedBox.shrink();
+            },
           ),
           // Content overlay
           FadeTransition(

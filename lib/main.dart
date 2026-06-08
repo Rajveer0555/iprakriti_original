@@ -39,8 +39,11 @@ Future<void> main() async {
     }
   }
 
+  // BUG #1 FIX: Only call initialize() here (safe — no permission dialog).
+  // syncWithStoredPreferences() (which triggers the Android permission dialog)
+  // is deferred to SplashScreenWrapper.initState via addPostFrameCallback,
+  // so Flutter's Activity window is fully ready before the dialog is shown.
   await NotificationService.instance.initialize();
-  await NotificationService.instance.syncWithStoredPreferences();
 
   runApp(
     ProviderScope(
@@ -82,6 +85,13 @@ class _SplashScreenWrapperState extends State<SplashScreenWrapper> {
   @override
   void initState() {
     super.initState();
+
+    // BUG #1 FIX: Sync notifications after the first frame so the Android
+    // Activity is fully alive before any permission dialog is shown.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationService.instance.syncWithStoredPreferences();
+    });
+
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
@@ -97,8 +107,25 @@ class _SplashScreenWrapperState extends State<SplashScreenWrapper> {
   }
 }
 
-class _AppEntryGate extends StatelessWidget {
+class _AppEntryGate extends StatefulWidget {
   const _AppEntryGate();
+
+  @override
+  State<_AppEntryGate> createState() => _AppEntryGateState();
+}
+
+// BUG #3 FIX: Converted to StatefulWidget so the Future is created once in
+// initState and reused across rebuilds. Previously it was a StatelessWidget
+// that called _isOnboardingComplete() directly inside build(), creating a new
+// Future (and a new SharedPreferences read) on every rebuild.
+class _AppEntryGateState extends State<_AppEntryGate> {
+  late final Future<bool> _onboardingFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _onboardingFuture = _isOnboardingComplete();
+  }
 
   Future<bool> _isOnboardingComplete() async {
     final prefs = await SharedPreferences.getInstance();
@@ -108,7 +135,7 @@ class _AppEntryGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-      future: _isOnboardingComplete(),
+      future: _onboardingFuture, // stable reference — not recreated on rebuild
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const _SplashScreen();
@@ -143,18 +170,44 @@ class AuthStateHandler extends ConsumerWidget {
   }
 }
 
-class _PostAuthDestination extends ConsumerWidget {
+class _PostAuthDestination extends ConsumerStatefulWidget {
   const _PostAuthDestination();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PostAuthDestination> createState() =>
+      _PostAuthDestinationState();
+}
+
+// BUG #4 FIX: Converted to ConsumerStatefulWidget so fetchUserProfile() is
+// called only once (in initState) and cached. Previously it was a
+// ConsumerWidget whose build() called ref.read(...).fetchUserProfile(userId)
+// directly, firing a new network request on every rebuild triggered by
+// authControllerProvider changes.
+class _PostAuthDestinationState extends ConsumerState<_PostAuthDestination> {
+  Future<UserProfileData>? _profileFuture;
+  String? _cachedUserId;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final userId = ref.read(authControllerProvider).session?.user.id;
+    // Only re-fetch if the user ID actually changed (e.g. after sign-out/in).
+    if (userId != null && userId != _cachedUserId) {
+      _cachedUserId = userId;
+      _profileFuture =
+          ref.read(userServiceProvider).fetchUserProfile(userId);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userId = ref.watch(authControllerProvider).session?.user.id;
     if (userId == null) {
       return const LoginScreen();
     }
 
     return FutureBuilder<UserProfileData>(
-      future: ref.read(userServiceProvider).fetchUserProfile(userId),
+      future: _profileFuture, // stable reference — network call not repeated
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const _SplashScreen();
@@ -175,6 +228,9 @@ class _PostAuthDestination extends ConsumerWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Shared loading placeholder shown during async waits
+// ---------------------------------------------------------------------------
 class _SplashScreen extends StatelessWidget {
   const _SplashScreen();
 
