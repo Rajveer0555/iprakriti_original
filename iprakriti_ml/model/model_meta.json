@@ -1,0 +1,29 @@
+{
+  "accuracy": 0.5,
+  "n_train_samples": 280,
+  "n_test_samples": 24,
+  "n_features": 25,
+  "n_classes": 7,
+  "classes": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "top_features": [
+    "Sleep",
+    "Control_on_Desires",
+    "Stool_Consistency",
+    "Meal_Skip_Response",
+    "Hair_Texture",
+    "Appetite",
+    "Problem_Handling",
+    "Lips_Color",
+    "Lips_Thickness",
+    "Grasping_Power"
+  ],
+  "trained_on_dummy": false
+}

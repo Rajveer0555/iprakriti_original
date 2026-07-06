@@ -1,0 +1,437 @@
+[
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "joblib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "joblib",
+        "description": "joblib",
+        "detail": "joblib",
+        "documentation": {}
+    },
+    {
+        "label": "numpy",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "numpy",
+        "description": "numpy",
+        "detail": "numpy",
+        "documentation": {}
+    },
+    {
+        "label": "FastAPI",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "HTTPException",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "CORSMiddleware",
+        "importPath": "fastapi.middleware.cors",
+        "description": "fastapi.middleware.cors",
+        "isExtraImport": true,
+        "detail": "fastapi.middleware.cors",
+        "documentation": {}
+    },
+    {
+        "label": "DoshaScore",
+        "importPath": "schemas",
+        "description": "schemas",
+        "isExtraImport": true,
+        "detail": "schemas",
+        "documentation": {}
+    },
+    {
+        "label": "ModelInfo",
+        "importPath": "schemas",
+        "description": "schemas",
+        "isExtraImport": true,
+        "detail": "schemas",
+        "documentation": {}
+    },
+    {
+        "label": "PrakritiInput",
+        "importPath": "schemas",
+        "description": "schemas",
+        "isExtraImport": true,
+        "detail": "schemas",
+        "documentation": {}
+    },
+    {
+        "label": "PrakritiResult",
+        "importPath": "schemas",
+        "description": "schemas",
+        "isExtraImport": true,
+        "detail": "schemas",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModel",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "Field",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "argparse",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "argparse",
+        "description": "argparse",
+        "detail": "argparse",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "pandas",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pandas",
+        "description": "pandas",
+        "detail": "pandas",
+        "documentation": {}
+    },
+    {
+        "label": "train_test_split",
+        "importPath": "sklearn.model_selection",
+        "description": "sklearn.model_selection",
+        "isExtraImport": true,
+        "detail": "sklearn.model_selection",
+        "documentation": {}
+    },
+    {
+        "label": "accuracy_score",
+        "importPath": "sklearn.metrics",
+        "description": "sklearn.metrics",
+        "isExtraImport": true,
+        "detail": "sklearn.metrics",
+        "documentation": {}
+    },
+    {
+        "label": "classification_report",
+        "importPath": "sklearn.metrics",
+        "description": "sklearn.metrics",
+        "isExtraImport": true,
+        "detail": "sklearn.metrics",
+        "documentation": {}
+    },
+    {
+        "label": "confusion_matrix",
+        "importPath": "sklearn.metrics",
+        "description": "sklearn.metrics",
+        "isExtraImport": true,
+        "detail": "sklearn.metrics",
+        "documentation": {}
+    },
+    {
+        "label": "run_pipeline",
+        "importPath": "data.preprocess",
+        "description": "data.preprocess",
+        "isExtraImport": true,
+        "detail": "data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "LABEL_DECODING",
+        "importPath": "data.preprocess",
+        "description": "data.preprocess",
+        "isExtraImport": true,
+        "detail": "data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "health_check",
+        "kind": 2,
+        "importPath": "iprakriti_ml.api.main",
+        "description": "iprakriti_ml.api.main",
+        "peekOfCode": "def health_check():\n    \"\"\"Quick health check — returns OK if server is running.\"\"\"\n    return {\n        \"status\": \"ok\",\n        \"model_loaded\": model is not None,\n        \"trained_on_dummy\": model_meta.get(\"trained_on_dummy\", True),\n    }\n@app.post(\"/predict\", response_model=PrakritiResult, tags=[\"Prediction\"])\ndef predict(data: PrakritiInput):\n    \"\"\"",
+        "detail": "iprakriti_ml.api.main",
+        "documentation": {}
+    },
+    {
+        "label": "predict",
+        "kind": 2,
+        "importPath": "iprakriti_ml.api.main",
+        "description": "iprakriti_ml.api.main",
+        "peekOfCode": "def predict(data: PrakritiInput):\n    \"\"\"\n    Predict Prakriti from 35 assessment answers.\n    Each answer is 0, 1, or 2:\n    - 0 = Vata-type response\n    - 1 = Pitta-type response\n    - 2 = Kapha-type response\n    Returns the predicted dosha, confidence score, and probability breakdown.\n    \"\"\"\n    if model is None:",
+        "detail": "iprakriti_ml.api.main",
+        "documentation": {}
+    },
+    {
+        "label": "model_info",
+        "kind": 2,
+        "importPath": "iprakriti_ml.api.main",
+        "description": "iprakriti_ml.api.main",
+        "peekOfCode": "def model_info():\n    \"\"\"Returns metadata about the currently loaded model.\"\"\"\n    if not model_meta:\n        raise HTTPException(status_code=404, detail=\"Model metadata not found.\")\n    return ModelInfo(**model_meta)",
+        "detail": "iprakriti_ml.api.main",
+        "documentation": {}
+    },
+    {
+        "label": "MODEL_PATH",
+        "kind": 5,
+        "importPath": "iprakriti_ml.api.main",
+        "description": "iprakriti_ml.api.main",
+        "peekOfCode": "MODEL_PATH = os.path.join(MODEL_DIR, \"prakriti_model.pkl\")\nMETA_PATH  = os.path.join(MODEL_DIR, \"model_meta.json\")\nLABEL_DECODING = {\n    0: \"Vata\", 1: \"Pitta\", 2: \"Kapha\",\n    3: \"Vata-Pitta\", 4: \"Pitta-Kapha\",\n    5: \"Vata-Kapha\", 6: \"Tridosha\",\n}\n# ---------------------------------------------------------------------------\n# LOAD MODEL AT STARTUP\n# ---------------------------------------------------------------------------",
+        "detail": "iprakriti_ml.api.main",
+        "documentation": {}
+    },
+    {
+        "label": "LABEL_DECODING",
+        "kind": 5,
+        "importPath": "iprakriti_ml.api.main",
+        "description": "iprakriti_ml.api.main",
+        "peekOfCode": "LABEL_DECODING = {\n    0: \"Vata\", 1: \"Pitta\", 2: \"Kapha\",\n    3: \"Vata-Pitta\", 4: \"Pitta-Kapha\",\n    5: \"Vata-Kapha\", 6: \"Tridosha\",\n}\n# ---------------------------------------------------------------------------\n# LOAD MODEL AT STARTUP\n# ---------------------------------------------------------------------------\nmodel = None\nmodel_meta = {}",
+        "detail": "iprakriti_ml.api.main",
+        "documentation": {}
+    },
+    {
+        "label": "model",
+        "kind": 5,
+        "importPath": "iprakriti_ml.api.main",
+        "description": "iprakriti_ml.api.main",
+        "peekOfCode": "model = None\nmodel_meta = {}\nif os.path.exists(MODEL_PATH):\n    model = joblib.load(MODEL_PATH)\n    print(f\"✅ Model loaded from {MODEL_PATH}\")\nelse:\n    print(f\"⚠️  No model found at {MODEL_PATH}\")\n    print(\"   Run `python model/train.py --dummy` to create one.\")\nif os.path.exists(META_PATH):\n    with open(META_PATH) as f:",
+        "detail": "iprakriti_ml.api.main",
+        "documentation": {}
+    },
+    {
+        "label": "model_meta",
+        "kind": 5,
+        "importPath": "iprakriti_ml.api.main",
+        "description": "iprakriti_ml.api.main",
+        "peekOfCode": "model_meta = {}\nif os.path.exists(MODEL_PATH):\n    model = joblib.load(MODEL_PATH)\n    print(f\"✅ Model loaded from {MODEL_PATH}\")\nelse:\n    print(f\"⚠️  No model found at {MODEL_PATH}\")\n    print(\"   Run `python model/train.py --dummy` to create one.\")\nif os.path.exists(META_PATH):\n    with open(META_PATH) as f:\n        model_meta = json.load(f)",
+        "detail": "iprakriti_ml.api.main",
+        "documentation": {}
+    },
+    {
+        "label": "app",
+        "kind": 5,
+        "importPath": "iprakriti_ml.api.main",
+        "description": "iprakriti_ml.api.main",
+        "peekOfCode": "app = FastAPI(\n    title=\"IPrakriti ML API\",\n    description=\"Predicts Ayurvedic Prakriti (dosha type) from a 35-question assessment.\",\n    version=\"1.0.0\",\n)\n# Allow Flutter app (any origin during development) to call the API.\n# In production, replace \"*\" with your actual Flutter app domain.\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"*\"],",
+        "detail": "iprakriti_ml.api.main",
+        "documentation": {}
+    },
+    {
+        "label": "PrakritiInput",
+        "kind": 6,
+        "importPath": "iprakriti_ml.api.schemas",
+        "description": "iprakriti_ml.api.schemas",
+        "peekOfCode": "class PrakritiInput(BaseModel):\n    \"\"\"\n    35-question Prakriti assessment input.\n    Every answer is an integer:\n        0 = Vata-type answer\n        1 = Pitta-type answer\n        2 = Kapha-type answer\n    \"\"\"\n    # Physical characteristics (Q1–Q9)\n    Q1_Body_Frame:         int = Field(..., ge=0, le=2, description=\"Body frame: 0=Thin, 1=Medium, 2=Heavy\")",
+        "detail": "iprakriti_ml.api.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "DoshaScore",
+        "kind": 6,
+        "importPath": "iprakriti_ml.api.schemas",
+        "description": "iprakriti_ml.api.schemas",
+        "peekOfCode": "class DoshaScore(BaseModel):\n    dosha: str\n    score: float = Field(..., description=\"Probability 0.0–1.0\")\nclass PrakritiResult(BaseModel):\n    predicted_prakriti: str   = Field(..., description=\"Predicted Prakriti type\")\n    confidence:         float = Field(..., description=\"Model confidence 0.0–1.0\")\n    all_scores:         list[DoshaScore] = Field(..., description=\"Probability for every dosha type\")\n    is_dummy_model:     bool  = Field(..., description=\"True if model trained on synthetic data\")\nclass ModelInfo(BaseModel):\n    accuracy:          float",
+        "detail": "iprakriti_ml.api.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "PrakritiResult",
+        "kind": 6,
+        "importPath": "iprakriti_ml.api.schemas",
+        "description": "iprakriti_ml.api.schemas",
+        "peekOfCode": "class PrakritiResult(BaseModel):\n    predicted_prakriti: str   = Field(..., description=\"Predicted Prakriti type\")\n    confidence:         float = Field(..., description=\"Model confidence 0.0–1.0\")\n    all_scores:         list[DoshaScore] = Field(..., description=\"Probability for every dosha type\")\n    is_dummy_model:     bool  = Field(..., description=\"True if model trained on synthetic data\")\nclass ModelInfo(BaseModel):\n    accuracy:          float\n    n_train_samples:   int\n    n_features:        int\n    classes:           list[str]",
+        "detail": "iprakriti_ml.api.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "ModelInfo",
+        "kind": 6,
+        "importPath": "iprakriti_ml.api.schemas",
+        "description": "iprakriti_ml.api.schemas",
+        "peekOfCode": "class ModelInfo(BaseModel):\n    accuracy:          float\n    n_train_samples:   int\n    n_features:        int\n    classes:           list[str]\n    top_features:      list[str]\n    trained_on_dummy:  bool",
+        "detail": "iprakriti_ml.api.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "generate_dummy_data",
+        "kind": 2,
+        "importPath": "iprakriti_ml.data.preprocess",
+        "description": "iprakriti_ml.data.preprocess",
+        "peekOfCode": "def generate_dummy_data(n_samples: int = 300, random_state: int = 42) -> pd.DataFrame:\n    rng = np.random.default_rng(random_state)\n    labels = [0, 1, 2, 3, 4, 5, 6]\n    weights = [0.12, 0.20, 0.08, 0.28, 0.14, 0.12, 0.06]\n    chosen = rng.choice(labels, size=n_samples, p=weights)\n    # Dosha → answer bias per feature (0=Vata, 1=Pitta, 2=Kapha)\n    bias_map = {\n        0: [0]*25, 1: [1]*25, 2: [2]*25,\n        3: [rng.choice([0,1]) for _ in range(25)],\n        4: [rng.choice([1,2]) for _ in range(25)],",
+        "detail": "iprakriti_ml.data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "load_and_encode_real_data",
+        "kind": 2,
+        "importPath": "iprakriti_ml.data.preprocess",
+        "description": "iprakriti_ml.data.preprocess",
+        "peekOfCode": "def load_and_encode_real_data(csv_path: str) -> pd.DataFrame:\n    print(f\"  Loading: {csv_path}\")\n    df = pd.read_csv(csv_path)\n    print(f\"  Raw shape: {df.shape}\")\n    print(f\"  Columns ({len(df.columns)}): found in CSV\")\n    # ── 1. Extract & encode target label ──────────────────────────────────\n    if TARGET_COLUMN not in df.columns:\n        raise ValueError(\n            f\"\\n❌ Target column not found!\\n\"\n            f\"   Expected: {repr(TARGET_COLUMN)}\\n\"",
+        "detail": "iprakriti_ml.data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "run_pipeline",
+        "kind": 2,
+        "importPath": "iprakriti_ml.data.preprocess",
+        "description": "iprakriti_ml.data.preprocess",
+        "peekOfCode": "def run_pipeline(csv_path: str | None = None, dummy: bool = False) -> dict:\n    print(\"=\" * 58)\n    print(\"  IPrakriti — Preprocessing Pipeline (Real Data)\")\n    print(\"=\" * 58)\n    if dummy:\n        print(\"\\n📋 Mode: SYNTHETIC (dummy) — 300 samples\")\n        df = generate_dummy_data(n_samples=300)\n        feature_cols = FEATURE_SHORT_NAMES\n    else:\n        # Auto-find CSV in data/raw/ if not specified",
+        "detail": "iprakriti_ml.data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "PROCESSED_DIR",
+        "kind": 5,
+        "importPath": "iprakriti_ml.data.preprocess",
+        "description": "iprakriti_ml.data.preprocess",
+        "peekOfCode": "PROCESSED_DIR = os.path.join(os.path.dirname(__file__), \"processed\")\nos.makedirs(PROCESSED_DIR, exist_ok=True)\n# ---------------------------------------------------------------------------\n# EXACT column names as they appear in your Google Form CSV export.\n# NOTE: some columns have trailing spaces — kept intentionally to match CSV.\n# ---------------------------------------------------------------------------\n# Columns to DROP (metadata, images, consent — not used for ML)\nDROP_COLUMNS = [\n    \"Timestamp\",\n    \"Email address\",",
+        "detail": "iprakriti_ml.data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "DROP_COLUMNS",
+        "kind": 5,
+        "importPath": "iprakriti_ml.data.preprocess",
+        "description": "iprakriti_ml.data.preprocess",
+        "peekOfCode": "DROP_COLUMNS = [\n    \"Timestamp\",\n    \"Email address\",\n    \"Mandatory for legal compliance.\",\n    \"Date\",\n    \"Upload Front Face Image\",\n    \"Upload Left Face Image\",\n    \"Upload Right Face Image\",\n    \"Was your Prakriti confirmed by an Ayurvedic doctor?\",\n]",
+        "detail": "iprakriti_ml.data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "FEATURE_COLUMNS",
+        "kind": 5,
+        "importPath": "iprakriti_ml.data.preprocess",
+        "description": "iprakriti_ml.data.preprocess",
+        "peekOfCode": "FEATURE_COLUMNS = [\n    \"Eyes_Colour\",\n    \"Lips_Texture\",\n    \"Lips_Thickness \",          # trailing space — matches CSV exactly\n    \"Lips_Color \",              # trailing space\n    \"Face_Color \",              # trailing space\n    \"Face_Texture \",            # trailing space\n    \"Skin_Color \",              # trailing space\n    \"Hair_Color \",              # trailing space\n    \"Hair_Texture \",            # trailing space",
+        "detail": "iprakriti_ml.data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "FEATURE_SHORT_NAMES",
+        "kind": 5,
+        "importPath": "iprakriti_ml.data.preprocess",
+        "description": "iprakriti_ml.data.preprocess",
+        "peekOfCode": "FEATURE_SHORT_NAMES = [\n    \"Eyes_Colour\",\n    \"Lips_Texture\",\n    \"Lips_Thickness\",\n    \"Lips_Color\",\n    \"Face_Color\",\n    \"Face_Texture\",\n    \"Skin_Color\",\n    \"Hair_Color\",\n    \"Hair_Texture\",",
+        "detail": "iprakriti_ml.data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "DEMO_COLUMNS",
+        "kind": 5,
+        "importPath": "iprakriti_ml.data.preprocess",
+        "description": "iprakriti_ml.data.preprocess",
+        "peekOfCode": "DEMO_COLUMNS = [\"Age\", \"Gender\"]\n# Target column (the Prakriti label filled in by Ayurvedic experts/self-assessed)\nTARGET_COLUMN = \"Skip if unsure, this is only for users already assessed by an Ayurvedic doctor.\"\n# ---------------------------------------------------------------------------\n# ANSWER → NUMBER ENCODING\n# Ayurvedic mapping: Vata=0, Pitta=1, Kapha=2\n# Dual/mixed answers → nearest single or average\n# ---------------------------------------------------------------------------\nANSWER_ENCODINGS = {\n    \"Eyes_Colour\": {",
+        "detail": "iprakriti_ml.data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "TARGET_COLUMN",
+        "kind": 5,
+        "importPath": "iprakriti_ml.data.preprocess",
+        "description": "iprakriti_ml.data.preprocess",
+        "peekOfCode": "TARGET_COLUMN = \"Skip if unsure, this is only for users already assessed by an Ayurvedic doctor.\"\n# ---------------------------------------------------------------------------\n# ANSWER → NUMBER ENCODING\n# Ayurvedic mapping: Vata=0, Pitta=1, Kapha=2\n# Dual/mixed answers → nearest single or average\n# ---------------------------------------------------------------------------\nANSWER_ENCODINGS = {\n    \"Eyes_Colour\": {\n        \"Blackish\": 0,             # Vata (dark, small)\n        \"Reddish/Brown\": 1,        # Pitta (sharp, reddish)",
+        "detail": "iprakriti_ml.data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "ANSWER_ENCODINGS",
+        "kind": 5,
+        "importPath": "iprakriti_ml.data.preprocess",
+        "description": "iprakriti_ml.data.preprocess",
+        "peekOfCode": "ANSWER_ENCODINGS = {\n    \"Eyes_Colour\": {\n        \"Blackish\": 0,             # Vata (dark, small)\n        \"Reddish/Brown\": 1,        # Pitta (sharp, reddish)\n        \"Milky/WhitishEdges\": 2,   # Kapha (white, large)\n    },\n    \"Lips_Texture\": {\n        \"Cracked / Shapeless\": 0,              # Vata\n        \"Smooth, Soft, Thin\": 1,               # Pitta\n        \"Smooth, Glossy, Proportionate\": 2,    # Kapha",
+        "detail": "iprakriti_ml.data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "LABEL_ENCODING",
+        "kind": 5,
+        "importPath": "iprakriti_ml.data.preprocess",
+        "description": "iprakriti_ml.data.preprocess",
+        "peekOfCode": "LABEL_ENCODING = {\n    # Pure doshas — all case/spelling variants found in real data\n    \"Vata dominant\": 0,\n    \"Vata Dominant\": 0,\n    \"Vata\": 0,\n    \"Pitta dominant\": 1,\n    \"Pitta Dominant\": 1,\n    \"Pitta\": 1,\n    \"Kapha dominant\": 2,\n    \"Kapha Dominant\": 2,",
+        "detail": "iprakriti_ml.data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "LABEL_DECODING",
+        "kind": 5,
+        "importPath": "iprakriti_ml.data.preprocess",
+        "description": "iprakriti_ml.data.preprocess",
+        "peekOfCode": "LABEL_DECODING = {v: k for k, v in {\n    0: \"Vata\", 1: \"Pitta\", 2: \"Kapha\",\n    3: \"Vata-Pitta\", 4: \"Pitta-Kapha\",\n    5: \"Vata-Kapha\", 6: \"Tridosha\",\n}.items()}\n# ---------------------------------------------------------------------------\n# SYNTHETIC DATA GENERATOR (fallback for testing)\n# ---------------------------------------------------------------------------\ndef generate_dummy_data(n_samples: int = 300, random_state: int = 42) -> pd.DataFrame:\n    rng = np.random.default_rng(random_state)",
+        "detail": "iprakriti_ml.data.preprocess",
+        "documentation": {}
+    },
+    {
+        "label": "evaluate",
+        "kind": 2,
+        "importPath": "iprakriti_ml.model.evaluate",
+        "description": "iprakriti_ml.model.evaluate",
+        "peekOfCode": "def evaluate():\n    print(\"=\" * 55)\n    print(\"  IPrakriti — Model Evaluation\")\n    print(\"=\" * 55)\n    # Load model\n    if not os.path.exists(MODEL_PATH):\n        print(f\"\\n❌ No model found at {MODEL_PATH}\")\n        print(\"   Run `python model/train.py --dummy` first.\")\n        return\n    model = joblib.load(MODEL_PATH)",
+        "detail": "iprakriti_ml.model.evaluate",
+        "documentation": {}
+    },
+    {
+        "label": "LABEL_DECODING",
+        "kind": 5,
+        "importPath": "iprakriti_ml.model.evaluate",
+        "description": "iprakriti_ml.model.evaluate",
+        "peekOfCode": "LABEL_DECODING = {\n    0: \"Vata\", 1: \"Pitta\", 2: \"Kapha\",\n    3: \"Vata-Pitta\", 4: \"Pitta-Kapha\",\n    5: \"Vata-Kapha\", 6: \"Tridosha\",\n}\ndef evaluate():\n    print(\"=\" * 55)\n    print(\"  IPrakriti — Model Evaluation\")\n    print(\"=\" * 55)\n    # Load model",
+        "detail": "iprakriti_ml.model.evaluate",
+        "documentation": {}
+    },
+    {
+        "label": "train",
+        "kind": 2,
+        "importPath": "iprakriti_ml.model.train",
+        "description": "iprakriti_ml.model.train",
+        "peekOfCode": "def train(dummy: bool = False, csv_path: str | None = None):\n    print(\"=\" * 58)\n    print(\"  IPrakriti — Model Training\")\n    print(\"=\" * 58)\n    data    = run_pipeline(csv_path=csv_path, dummy=dummy)\n    X_train = data[\"X_train\"]\n    y_train = data[\"y_train\"]\n    X_test  = data[\"X_test\"]\n    y_test  = data[\"y_test\"]\n    # ── SMOTE for class imbalance ─────────────────────────────────────────",
+        "detail": "iprakriti_ml.model.train",
+        "documentation": {}
+    },
+    {
+        "label": "MODEL_PATH",
+        "kind": 5,
+        "importPath": "iprakriti_ml.model.train",
+        "description": "iprakriti_ml.model.train",
+        "peekOfCode": "MODEL_PATH = os.path.join(MODEL_DIR, \"prakriti_model.pkl\")\nMETA_PATH  = os.path.join(MODEL_DIR, \"model_meta.json\")\ndef train(dummy: bool = False, csv_path: str | None = None):\n    print(\"=\" * 58)\n    print(\"  IPrakriti — Model Training\")\n    print(\"=\" * 58)\n    data    = run_pipeline(csv_path=csv_path, dummy=dummy)\n    X_train = data[\"X_train\"]\n    y_train = data[\"y_train\"]\n    X_test  = data[\"X_test\"]",
+        "detail": "iprakriti_ml.model.train",
+        "documentation": {}
+    }
+]
