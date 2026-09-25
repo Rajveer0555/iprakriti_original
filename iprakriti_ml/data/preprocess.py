@@ -246,69 +246,52 @@ ANSWER_ENCODINGS = {
 # PRAKRITI LABEL ENCODING
 # Handles all label variations found in your actual data
 # ---------------------------------------------------------------------------
-LABEL_ENCODING = {
-    # Pure doshas — all case/spelling variants found in real data
-    "Vata dominant": 0,
-    "Vata Dominant": 0,
-    "Vata": 0,
-    "Pitta dominant": 1,
-    "Pitta Dominant": 1,
-    "Pitta": 1,
-    "Kapha dominant": 2,
-    "Kapha Dominant": 2,
-    "Kapha": 2,
+# ---------------------------------------------------------------------------
+# 3-CLASS STRUCTURE (team decision, June 2026)
+# All 120 rows merged into 3 dual-dosha classes:
+#   0 = Vata-Pitta  (~57 samples)
+#   1 = Pitta-Kapha (~43 samples)
+#   2 = Vata-Kapha  (~11 samples)
+# Tridosha (1 sample) merged into Vata-Pitta as nearest class.
+# Encoding uses strip+lower for robust matching of all spelling variants.
+# ---------------------------------------------------------------------------
 
-    # Vata-Pitta variants
-    "Vata-Pitta dominant": 3,
-    "Vata-Pitta Dominant": 3,
-    "Vata-Pitta": 3,
-    "Vata Pitta dominant": 3,
-    "Vata Pitta Dominant": 3,
-    "Pitta-Vata dominant": 3,       # reversed order
-    "Pitta-Vata Dominant": 3,
-    "Pitta-vata dominant": 3,
-    "Pitta vata dominant": 3,
-    "Pitta Vata dominant": 3,
-    "Pitta Vata Dominant": 3,
+def _build_label_encoding():
+    """Build case-insensitive label encoding from all variants seen in data."""
+    vata_pitta = [
+        "vata-pitta dominant", "vata-pitta", "vata pitta dominant",
+        "pitta-vata dominant", "pitta vata dominant", "pitta-vata",
+        "pitta vata  dominant", "vata pitta  dominant",
+        "tridosha / balanced", "tridosha",  # merged here (only 1 sample)
+    ]
+    pitta_kapha = [
+        "pitta-kapha dominant", "pitta-kapha", "pitta kapha dominant",
+        "kapha-pitta dominant", "kapha pitta dominant",
+        "pitta kapha  dominant",
+    ]
+    vata_kapha = [
+        "vata-kapha dominant", "vata-kapha", "vata kapha dominant",
+        "kapha-vata dominant", "kapha vata dominant",
+    ]
+    encoding = {}
+    for v in vata_pitta:
+        encoding[v] = 0
+    for v in pitta_kapha:
+        encoding[v] = 1
+    for v in vata_kapha:
+        encoding[v] = 2
+    return encoding
 
-    # Pitta-Kapha variants
-    "Pitta-Kapha dominant": 4,
-    "Pitta-Kapha Dominant": 4,
-    "Pitta-Kapha": 4,
-    "Pitta Kapha dominant": 4,
-    "Pitta Kapha Dominant": 4,
-    "Pitta kapha dominant": 4,
-    "Pitta-kapha Dominant": 4,
-    "Pitta-kapha dominant": 4,
-    "Kapha-Pitta dominant": 4,      # reversed order
-    "Kapha-Pitta Dominant": 4,
-    "Kapha Pitta dominant": 4,
-    "Kapha Pitta Dominant": 4,
+LABEL_ENCODING_LOWER = _build_label_encoding()
 
-    # Vata-Kapha variants
-    "Vata-Kapha dominant": 5,
-    "Vata-Kapha Dominant": 5,
-    "Vata-Kapha": 5,
-    "Vata Kapha dominant": 5,
-    "Vata Kapha Dominant": 5,
-    "Kapha-Vata dominant": 5,       # reversed order
-    "Kapha-Vata Dominant": 5,
-    "Kapha Vata dominant": 5,
-    "Kapha Vata Dominant": 5,
+# Keep a raw dict for backward compatibility
+LABEL_ENCODING = {k: v for k, v in LABEL_ENCODING_LOWER.items()}
 
-    # Tridosha variants
-    "Tridosha / Balanced": 6,
-    "Tridosha": 6,
-    "Tridosha dominant": 6,
-    "Tridosha Dominant": 6,
-    "Balanced": 6,
+LABEL_DECODING = {
+    0: "Vata-Pitta",
+    1: "Pitta-Kapha",
+    2: "Vata-Kapha",
 }
-
-LABEL_DECODING = {v: k for k, v in {
-    0: "Vata", 1: "Pitta", 2: "Kapha",
-    3: "Vata-Pitta", 4: "Pitta-Kapha",
-    5: "Vata-Kapha", 6: "Tridosha",
-}.items()}
 
 # ---------------------------------------------------------------------------
 # SYNTHETIC DATA GENERATOR (fallback for testing)
@@ -316,17 +299,16 @@ LABEL_DECODING = {v: k for k, v in {
 
 def generate_dummy_data(n_samples: int = 300, random_state: int = 42) -> pd.DataFrame:
     rng = np.random.default_rng(random_state)
-    labels = [0, 1, 2, 3, 4, 5, 6]
-    weights = [0.12, 0.20, 0.08, 0.28, 0.14, 0.12, 0.06]
+    # 3-class structure matching team's merged dataset
+    labels = [0, 1, 2]
+    weights = [0.48, 0.37, 0.15]  # matches real distribution
     chosen = rng.choice(labels, size=n_samples, p=weights)
 
     # Dosha → answer bias per feature (0=Vata, 1=Pitta, 2=Kapha)
     bias_map = {
-        0: [0]*25, 1: [1]*25, 2: [2]*25,
-        3: [rng.choice([0,1]) for _ in range(25)],
-        4: [rng.choice([1,2]) for _ in range(25)],
-        5: [rng.choice([0,2]) for _ in range(25)],
-        6: [rng.choice([0,1,2]) for _ in range(25)],
+        0: [rng.choice([0,1]) for _ in range(25)],  # Vata-Pitta
+        1: [rng.choice([1,2]) for _ in range(25)],  # Pitta-Kapha
+        2: [rng.choice([0,2]) for _ in range(25)],  # Vata-Kapha
     }
     rows = []
     for label in chosen:
@@ -347,7 +329,10 @@ def generate_dummy_data(n_samples: int = 300, random_state: int = 42) -> pd.Data
 
 def load_and_encode_real_data(csv_path: str) -> pd.DataFrame:
     print(f"  Loading: {csv_path}")
-    df = pd.read_csv(csv_path)
+    if csv_path.endswith(".xlsx") or csv_path.endswith(".xls"):
+        df = pd.read_excel(csv_path)
+    else:
+        df = pd.read_csv(csv_path)
     print(f"  Raw shape: {df.shape}")
     print(f"  Columns ({len(df.columns)}): found in CSV")
 
@@ -359,8 +344,9 @@ def load_and_encode_real_data(csv_path: str) -> pd.DataFrame:
             f"   Found: {list(df.columns)}"
         )
 
+    # Case-insensitive matching — handles all spelling/spacing variants
     raw_labels = df[TARGET_COLUMN].astype(str).str.strip()
-    df["Prakriti_Label"] = raw_labels.map(LABEL_ENCODING)
+    df["Prakriti_Label"] = raw_labels.str.strip().str.lower().map(LABEL_ENCODING_LOWER)
 
     # Show which labels couldn't be mapped
     unmapped_labels = raw_labels[df["Prakriti_Label"].isna()].unique()
@@ -490,4 +476,3 @@ if __name__ == "__main__":
     parser.add_argument("--input", type=str)
     args = parser.parse_args()
     run_pipeline(csv_path=args.input, dummy=args.dummy)
-    
