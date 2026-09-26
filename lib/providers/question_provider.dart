@@ -119,8 +119,7 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
     ),
     QuestionModel(
       id: 'work_duration',
-      question:
-          'How much work or activity can you sustain before feeling tired?',
+      question: 'How much work or activity can you sustain before feeling tired?',
       options: const [
         QuestionOption(
           label: 'Less, I tire quickly and need frequent breaks',
@@ -343,16 +342,12 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
   }
 
   void nextQuestion() {
-    if (state.selectedOptionIndex == null || state.isLastQuestion) {
-      return;
-    }
+    if (state.selectedOptionIndex == null || state.isLastQuestion) return;
     state = state.copyWith(currentIndex: state.currentIndex + 1);
   }
 
   void previousQuestion() {
-    if (state.isFirstQuestion) {
-      return;
-    }
+    if (state.isFirstQuestion) return;
     state = state.copyWith(currentIndex: state.currentIndex - 1);
   }
 
@@ -364,6 +359,11 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
     );
   }
 
+  /// Rule-based fallback result.
+  /// BUG FIX: Now returns a dual-dosha label (Vata-Pitta, Pitta-Kapha,
+  /// Vata-Kapha) instead of a pure dosha label, so the fallback result
+  /// matches the 3 classes the ML model was trained on.
+  /// This is only used when the ML API is unreachable.
   PrakritiAssessmentResult calculateResult({
     required Map<int, int> faceFeatureAnswers,
   }) {
@@ -381,32 +381,42 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
     final pittaScore = (weightedPitta * 1000).round();
     final kaphaScore = (weightedKapha * 1000).round();
 
-    final resultMap = {
+    // Map scores to the 3 dual-dosha classes the ML model uses.
+    // Pick the two highest scoring doshas and combine them.
+    final scores = {
       Dosha.vata: vataScore,
       Dosha.pitta: pittaScore,
       Dosha.kapha: kaphaScore,
     };
+    final sorted = scores.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
-    final dominant = resultMap.entries.reduce(
-      (a, b) => a.value >= b.value ? a : b,
-    );
+    final first = sorted[0].key;
+    final second = sorted[1].key;
+    final fallbackPrakriti = _toDualDosha(first, second);
 
     return PrakritiAssessmentResult(
       vataScore: vataScore,
       pittaScore: pittaScore,
       kaphaScore: kaphaScore,
-      finalPrakriti: dominant.key.label,
+      finalPrakriti: fallbackPrakriti,
       createdAt: DateTime.now(),
     );
   }
 
+  /// Converts the two dominant doshas to one of the 3 valid dual-dosha labels.
+  String _toDualDosha(Dosha first, Dosha second) {
+    final pair = {first, second};
+    if (pair.containsAll([Dosha.vata, Dosha.pitta])) return 'Vata-Pitta';
+    if (pair.containsAll([Dosha.pitta, Dosha.kapha])) return 'Pitta-Kapha';
+    if (pair.containsAll([Dosha.vata, Dosha.kapha])) return 'Vata-Kapha';
+    // Edge case: all three equal — default to Vata-Pitta
+    return 'Vata-Pitta';
+  }
+
   Map<Dosha, double> _distributionFromFaceAnswers(Map<int, int> faceAnswers) {
     if (faceAnswers.isEmpty) {
-      return {
-        Dosha.vata: 0,
-        Dosha.pitta: 0,
-        Dosha.kapha: 0,
-      };
+      return {Dosha.vata: 0, Dosha.pitta: 0, Dosha.kapha: 0};
     }
 
     var vata = 0;
@@ -417,13 +427,10 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
       switch (optionIndex) {
         case 0:
           vata += 1;
-          break;
         case 1:
           pitta += 1;
-          break;
         case 2:
           kapha += 1;
-          break;
       }
     }
 
@@ -442,9 +449,7 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
 
     for (var index = 0; index < state.questions.length; index++) {
       final selectedIndex = state.selectedAnswers[index];
-      if (selectedIndex == null) {
-        continue;
-      }
+      if (selectedIndex == null) continue;
 
       final option = state.questions[index].options[selectedIndex];
       vataScore += option.scores[Dosha.vata] ?? 0;
@@ -454,11 +459,7 @@ class QuestionnaireController extends StateNotifier<QuestionnaireState> {
 
     final total = (vataScore + pittaScore + kaphaScore).toDouble();
     if (total == 0) {
-      return {
-        Dosha.vata: 0,
-        Dosha.pitta: 0,
-        Dosha.kapha: 0,
-      };
+      return {Dosha.vata: 0, Dosha.pitta: 0, Dosha.kapha: 0};
     }
 
     return {
